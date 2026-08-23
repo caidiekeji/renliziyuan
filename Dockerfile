@@ -7,14 +7,14 @@ FROM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 COPY prisma ./prisma/
-RUN npm ci && npx prisma generate
+RUN npm install && npx prisma generate
 
 # ---------- 2. 构建层 ----------
 FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build
+RUN npm install && npm run build
 
 # ---------- 3. 运行层 ----------
 FROM node:22-alpine AS runner
