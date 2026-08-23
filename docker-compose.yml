@@ -39,7 +39,7 @@ services:
     build: .
     restart: unless-stopped
     ports:
-      - "${APP_PORT:-3000}:3000"
+      - "${APP_PORT:-8182}:3000"
     environment:
       NODE_ENV: production
       DATABASE_URL: postgresql://postgres:${DB_PASSWORD:-changeme}@postgres:5432/renliziyuan?schema=public
@@ -48,11 +48,11 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       BACKUP_ENCRYPT_KEY: ${BACKUP_ENCRYPT_KEY}
-      NEXT_PUBLIC_SITE_URL: ${SITE_URL:-http://localhost:3000}
+      NEXT_PUBLIC_SITE_URL: ${SITE_URL:-http://localhost:8182}
       TRUST_PROXY: "1"
       SMS_DEV_MODE: "${SMS_DEV_MODE:-0}"
       UPLOAD_DRIVER: "${UPLOAD_DRIVER:-local}"
-      UPLOAD_BASE_URL: ${SITE_URL:-http://localhost:3000}
+      UPLOAD_BASE_URL: ${SITE_URL:-http://localhost:8182}
     volumes:
       - uploads_data:/app/uploads
     depends_on:
@@ -74,7 +74,7 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
       BACKUP_ENCRYPT_KEY: ${BACKUP_ENCRYPT_KEY}
-      NEXT_PUBLIC_SITE_URL: ${SITE_URL:-http://localhost:3000}
+      NEXT_PUBLIC_SITE_URL: ${SITE_URL:-http://localhost:8182}
       UPLOAD_DRIVER: "${UPLOAD_DRIVER:-local}"
     volumes:
       - uploads_data:/app/uploads
