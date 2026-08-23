@@ -1,103 +1,183 @@
-import Image from "next/image";
+'use client';
 
-export default function Home() {
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { PublicHeader, PublicFooter } from '@/components/layout/PublicLayout';
+import { JobCard, type JobCardData } from '@/components/JobCard';
+import { api, qs } from '@/lib/api';
+import { PageLoading } from '@/components/ui/Spinner';
+import { useAuth } from '@/lib/auth-context';
+import { useAutoCityContext } from '@/components/layout/AutoCityProvider';
+import { useSiteConfig } from '@/components/layout/SiteConfigProvider';
+
+export default function HomePage() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <Suspense fallback={<PageLoading />}>
+      <HomeContent />
+    </Suspense>
+  );
+}
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+function HomeContent() {
+  const router = useRouter();
+  const sp = useSearchParams();
+  const { user } = useAuth();
+  const { siteName } = useSiteConfig();
+  const [keyword, setKeyword] = useState('');
+  const [recommended, setRecommended] = useState<JobCardData[]>([]);
+  const [hot, setHot] = useState<JobCardData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const city = sp.get('city') || '全国';
+  const hasCityParam = sp.has('city');
+  const { locatedCity, done: locateDone } = useAutoCityContext();
+  const effectiveCity = hasCityParam ? city : locatedCity || '全国';
+  const locateReady = hasCityParam || locateDone;
+
+  useEffect(() => {
+    if (!locateReady) return;
+    let cancelled = false;
+    setLoading(true);
+    (async () => {
+      // 推荐（登录求职者）或热门兜底
+      const recPromise =
+        user?.role === 'CANDIDATE'
+          ? api.get<JobCardData[]>('/api/jobs/recommended' + qs({ pageSize: 10 }))
+          : Promise.resolve({ ok: false } as any);
+      const hotPromise = api.get<JobCardData[]>('/api/jobs' + qs({ sort: 'hot', pageSize: 12, city: effectiveCity !== '全国' ? effectiveCity : undefined }));
+      const [rec, hotRes] = await Promise.all([recPromise, hotPromise]);
+      if (cancelled) return;
+      if (rec?.ok) setRecommended(rec.data);
+      if (hotRes.ok) setHot(hotRes.data);
+      setLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.role, effectiveCity, locateReady]);
+
+  const search = () => {
+    router.push(`/jobs${qs({ keyword: keyword.trim() || undefined, city: effectiveCity !== '全国' ? effectiveCity : undefined })}`);
+  };
+
+  const hotCities = ['北京', '上海', '广州', '深圳', '杭州', '成都'];
+
+/** 职位卡片骨架：结构与 JobCard 一致，避免加载时发生布局跳动 */
+function JobCardSkeleton() {
+  return (
+    <div className="card animate-pulse p-4 sm:p-5" aria-hidden="true">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <div className="h-4 w-24 rounded bg-border" />
+            <div className="h-4 w-10 rounded-full bg-border" />
+          </div>
+          <div className="mt-3 h-3.5 w-32 rounded bg-border" />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        <div className="h-5 w-16 rounded bg-border" />
+      </div>
+      <div className="mt-3 flex gap-1.5">
+        <div className="h-5 w-14 rounded bg-border" />
+        <div className="h-5 w-14 rounded bg-border" />
+        <div className="h-5 w-14 rounded bg-border" />
+      </div>
+      <div className="mt-4 flex items-center justify-between border-t border-border pt-3">
+        <div className="h-5 w-24 rounded bg-border" />
+        <div className="h-3.5 w-12 rounded bg-border" />
+      </div>
+    </div>
+  );
+}
+
+function JobGridSkeleton({ count }: { count: number }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+      {Array.from({ length: count }, (_, i) => (
+        <JobCardSkeleton key={i} />
+      ))}
+    </div>
+  );
+}
+
+  return (
+    <div className="min-h-screen bg-bg">
+      <PublicHeader />
+
+      {/* Hero */}
+      <section className="border-b border-border bg-gradient-to-b from-primary-soft/60 to-white">
+        <div className="mx-auto max-w-6xl px-4 py-12 text-center sm:py-16">
+          <h1 className="text-2xl font-bold text-text sm:text-4xl">
+            找到好工作，遇见好人才
+          </h1>
+          <p className="mt-2 text-sm text-text-secondary sm:text-base">{siteName} —— 连接企业与人才的桥梁</p>
+          <div className="mx-auto mt-6 flex max-w-xl items-center gap-2 rounded-full border border-border bg-white p-1.5 shadow-sm">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="ml-3 shrink-0 text-text-secondary">
+              <circle cx="11" cy="11" r="7" />
+              <path d="m21 21-4.3-4.3" />
+            </svg>
+            <input
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && search()}
+              placeholder="搜索职位 / 关键词…"
+              className="h-9 flex-1 bg-transparent text-sm outline-none"
+            />
+            <button onClick={search} className="h-9 rounded-full bg-primary px-5 text-sm font-medium text-white hover:bg-primary-hover">
+              搜索
+            </button>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-1.5 text-xs text-text-secondary">
+            <span>热门城市：</span>
+            {hotCities.map((c) => (
+              <button
+                key={c}
+                onClick={() => router.push(`/jobs?city=${encodeURIComponent(c)}`)}
+                className="rounded-md bg-white px-2 py-0.5 text-text-secondary hover:bg-primary-soft hover:text-text"
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <div className="mx-auto max-w-6xl px-4 py-8">
+        {!loading && user?.role === 'CANDIDATE' && recommended.length > 0 && (
+          <section className="mb-8">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-text">为你推荐</h2>
+              <span className="text-xs text-text-secondary">基于技能 / 城市 / 行为个性化匹配</span>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {recommended.map((j) => (
+                <JobCard key={j.id} job={j} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section>
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-lg font-bold text-text">
+              {effectiveCity !== '全国' ? `${effectiveCity} · 热门职位` : '热门职位'}
+            </h2>
+            <button onClick={() => router.push('/jobs' + qs({ city: effectiveCity !== '全国' ? effectiveCity : undefined }))} className="text-sm text-text hover:underline">
+              查看全部 →
+            </button>
+          </div>
+          {loading ? (
+            <JobGridSkeleton count={12} />
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              {hot.map((j) => (
+                <JobCard key={j.id} job={j} />
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+
+      <PublicFooter />
     </div>
   );
 }

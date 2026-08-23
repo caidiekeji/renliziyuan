@@ -1,0 +1,1124 @@
+// ============================================================
+// 职桥 JobBridge —— 人力资源招聘平台
+// Prisma Schema (v2.1)
+// PostgreSQL 16+ (本机 18.1)
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ================= 枚举 =================
+enum Role {
+  CANDIDATE
+  COMPANY
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BANNED
+  DELETED
+}
+
+enum CompanyVerifyStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum CompanyMemberRole {
+  OWNER
+  HR
+  VIEWER
+}
+
+enum CompanyMemberStatus {
+  ACTIVE
+  INVITED
+  REMOVED
+}
+
+enum JobStatus {
+  OPEN
+  CLOSED
+}
+
+enum JobClosedReason {
+  ADMIN
+  COMPANY
+  QUOTA_EXCEEDED
+  AUDIT_REJECTED
+}
+
+enum JobAuditStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SalaryUnit {
+  MONTH_K
+  DAY_YUAN
+}
+
+enum JobType {
+  FULL_TIME
+  PART_TIME
+  INTERN
+  CONTRACT
+}
+
+enum Experience {
+  FRESH
+  Y1_3
+  Y3_5
+  Y5
+}
+
+enum ReviewType {
+  COMPANY
+  CANDIDATE
+}
+
+enum ReplyStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum PaymentChannel {
+  ALIPAY
+  WECHAT
+  STRIPE
+}
+
+enum PaymentType {
+  SUBSCRIPTION
+  RECHARGE
+}
+
+enum ReportTargetType {
+  COMPANY
+  JOB
+  REVIEW
+  USER
+}
+
+enum ReportStatus {
+  PENDING
+  HANDLED
+  DISMISSED
+}
+
+enum UserEventType {
+  VIEW
+  FAVORITE
+  CHAT
+}
+
+enum NotificationType {
+  NEW_MESSAGE
+  NEW_REVIEW
+  REVIEW_REPLY
+  JOB_AUDIT
+  COMPANY_VERIFY
+  PLAN_EXPIRE
+  BOOST_OVERTAKEN
+  BOOST_BALANCE_LOW
+  SYSTEM
+}
+
+enum NotificationChannel {
+  INAPP
+  SMS
+  EMAIL
+}
+
+enum AnnouncementType {
+  BANNER
+  NOTICE
+}
+
+enum AuditMode {
+  PRE
+  POST
+}
+
+enum BackupType {
+  FULL
+  SCHEMA_DATA
+}
+
+enum BackupFormat {
+  SQL
+  CUSTOM
+}
+
+enum DbBackupType {
+  MANUAL
+  AUTO
+  PRE_RESTORE_SNAPSHOT
+}
+
+enum DbBackupStatus {
+  RUNNING
+  OK
+  FAILED
+  DELETED
+}
+
+enum PolicyStatus {
+  DRAFT
+  PUBLISHED
+  SUPERSEDED
+}
+
+enum PolicySource {
+  REGISTER
+  LOGIN
+  IN_APP_PROMPT
+}
+
+enum SensitiveWordScope {
+  ALL
+  JOB
+  REVIEW
+  CHAT
+}
+
+enum SmsProviderType {
+  ALIYUN
+  TENCENT
+  VOLCENGINE
+}
+
+enum SmsPurpose {
+  LOGIN
+  RESET
+  VERIFY
+}
+
+enum SeekerPostStatus {
+  OPEN
+  CLOSED
+}
+
+enum SeekerPostClosedReason {
+  USER_DELETED
+  USER_CLOSED
+}
+
+enum CallLogType {
+  JOB
+  SEEKER_POST
+}
+
+enum ReviewScope {
+  JOB
+  HOURLY
+}
+
+enum HourlyApplicationStatus {
+  APPLIED
+  CANCELLED
+}
+
+enum JobBiddingBoostStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  EXPIRED
+  REJECTED
+}
+
+enum BoostJobType {
+  FULL_TIME
+  PART_TIME
+  INTERN
+  CONTRACT
+  HOURLY
+}
+
+enum WalletTransactionType {
+  RECHARGE
+  CONSUME
+  FREEZE
+  UNFREEZE
+  REFUND
+  ADJUST
+}
+
+// ================= 用户 =================
+model User {
+  id                    String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone                 String?   @unique @db.VarChar(20)
+  email                 String?   @unique @db.VarChar(255)
+  password_hash         String?   @db.VarChar(255)
+  name                  String    @db.VarChar(50)
+  avatar                String?   @db.VarChar(500)
+  bio                   String?
+  role                  Role      @default(CANDIDATE)
+  title                 String?   @db.VarChar(100)
+  city                  String?   @db.VarChar(50)
+  skills                String[]  @db.Text
+  status                UserStatus @default(ACTIVE)
+  chat_muted_until      DateTime? @db.Timestamptz
+  refresh_token_version Int       @default(0)
+  deleted_at            DateTime? @db.Timestamptz
+  last_login_at         DateTime? @db.Timestamptz
+  created_at            DateTime  @default(now()) @db.Timestamptz
+  updated_at            DateTime  @updatedAt @db.Timestamptz
+
+  companies             CompanyMember[]
+  conversations         Conversation[]        @relation("ConversationCandidate")
+  sent_messages         Message[]
+  reviews_given         Review[]              @relation("ReviewReviewer")
+  reviews_received      Review[]              @relation("ReviewCandidate")
+  favorites             Favorite[]
+  reports               Report[]
+  user_events           UserEvent[]
+  notifications         Notification[]
+  audit_logs            AuditLog[]
+  payments_reviewed     Review[]              @relation("ReplyReviewedBy")
+  policy_agreements     UserPolicyAgreement[]
+  policies_created      Policy[]              @relation("PolicyCreatedBy")
+  policies_published    Policy[]              @relation("PolicyPublishedBy")
+  seeker_posts          SeekerPost[]
+  call_logs_caller      CallLog[]             @relation("CallLogCaller")
+  call_logs_callee      CallLog[]             @relation("CallLogCallee")
+  db_backups            DbBackup[]
+  companies_owned       Company[]
+  hourly_applications   HourlyJobApplication[]
+  reviews_replied       Review[]              @relation("ReviewReplyBy")
+
+  @@index([status, role])
+  @@index([city])
+}
+
+model PhoneReleasePool {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone       String   @unique @db.VarChar(20)
+  released_at DateTime @default(now()) @db.Timestamptz
+  old_user_id String?  @db.Uuid
+
+  @@index([phone, released_at])
+}
+
+// ================= 行业 / 职位名称 (v2.1) =================
+model Industry {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  parent_id  String?    @db.Uuid
+  name       String     @db.VarChar(50)
+  code       String     @unique @db.VarChar(20)
+  sort       Int        @default(0)
+  active     Boolean    @default(true)
+  created_at DateTime   @default(now()) @db.Timestamptz
+  updated_at DateTime   @updatedAt @db.Timestamptz
+
+  parent      Industry?  @relation("IndustryChildren", fields: [parent_id], references: [id])
+  children    Industry[] @relation("IndustryChildren")
+  companies   Company[]
+  jobs        Job[]
+
+  @@index([parent_id])
+  @@index([active, sort])
+}
+
+model JobTitle {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  category     String   @db.VarChar(50)
+  sub_category String?  @db.VarChar(50)
+  name         String   @db.VarChar(100)
+  code         String   @unique @db.VarChar(30)
+  sort         Int      @default(0)
+  active       Boolean  @default(true)
+  created_at   DateTime @default(now()) @db.Timestamptz
+  updated_at   DateTime @updatedAt @db.Timestamptz
+
+  jobs Job[]
+
+  @@index([category, sub_category])
+  @@index([name(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([active, sort])
+}
+
+// ================= 企业 =================
+model Company {
+  id            String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  owner_id      String               @db.Uuid
+  name          String               @db.VarChar(100)
+  logo          String?              @db.VarChar(500)
+  industry_id   String?              @db.Uuid
+  size          String?              @db.VarChar(20)
+  location      String?              @db.VarChar(100)
+  contact_phone String?              @db.VarChar(20)
+  website       String?              @db.VarChar(200)
+  description   String?
+  founded_at    DateTime?            @db.Date
+  verify_status CompanyVerifyStatus  @default(PENDING)
+  avg_rating    Decimal              @default(0) @db.Decimal(2, 1)
+  review_count  Int                  @default(0)
+  created_at    DateTime             @default(now()) @db.Timestamptz
+  updated_at    DateTime             @updatedAt @db.Timestamptz
+
+  owner         User                 @relation(fields: [owner_id], references: [id])
+  industry      Industry?            @relation(fields: [industry_id], references: [id])
+  members       CompanyMember[]
+  jobs          Job[]
+  conversations Conversation[]
+  subscriptions Subscription[]
+  payments      Payment[]
+  reviews       Review[]             @relation("CompanyReviews")
+  wallet        CompanyWallet?
+  wallet_transactions WalletTransaction[]
+  bidding_boosts JobBiddingBoost[]
+
+  @@index([owner_id])
+  @@index([verify_status])
+  @@index([industry_id])
+}
+
+model CompanyMember {
+  id         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id String              @db.Uuid
+  user_id    String              @db.Uuid
+  role       CompanyMemberRole   @default(HR)
+  status     CompanyMemberStatus @default(ACTIVE)
+  is_primary_contact Boolean      @default(false)
+  created_at DateTime            @default(now()) @db.Timestamptz
+
+  company Company @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [user_id], references: [id])
+
+  @@unique([company_id, user_id])
+  @@index([user_id, status])
+}
+
+// ================= 职位 =================
+model Job {
+  id            String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id    String          @db.Uuid
+  industry_id   String?         @db.Uuid
+  job_title_id  String?         @db.Uuid
+  title         String          @db.VarChar(100)
+  description   String
+  salary_min    Int?
+  salary_max    Int?
+  salary_unit   SalaryUnit      @default(MONTH_K)
+  city          String          @db.VarChar(50)
+  job_type      JobType
+  experience    Experience?
+  education     String?         @db.VarChar(20)
+  tags          String[]        @db.Text
+  status        JobStatus       @default(OPEN)
+  closed_reason JobClosedReason?
+  audit_status  JobAuditStatus  @default(APPROVED)
+  is_featured   Boolean         @default(false)
+  is_hourly     Boolean         @default(false)
+  hourly_rate   Decimal?        @db.Decimal(10, 2)
+  work_period   String?         @db.VarChar(100)
+  slots         Int             @default(1)
+  applied_count Int             @default(0)
+  lat           Decimal?        @db.Decimal(9, 6)
+  lng           Decimal?        @db.Decimal(9, 6)
+  views         Int             @default(0)
+  deleted_at    DateTime?       @db.Timestamptz
+  created_at    DateTime        @default(now()) @db.Timestamptz
+  updated_at    DateTime        @updatedAt @db.Timestamptz
+
+  company       Company         @relation(fields: [company_id], references: [id])
+  industry      Industry?       @relation(fields: [industry_id], references: [id])
+  job_title     JobTitle?       @relation(fields: [job_title_id], references: [id])
+  conversations Conversation[]
+  favorites     Favorite[]
+  user_events   UserEvent[]
+  boosts        JobBoost[]
+  bidding_boosts JobBiddingBoost[]
+  hourly_applications HourlyJobApplication[]
+
+  @@index([company_id])
+  @@index([status, created_at])
+  @@index([city])
+  @@index([industry_id])
+  @@index([job_title_id])
+  @@index([title(ops: raw("gin_trgm_ops"))], type: Gin)
+  @@index([lat, lng])
+}
+
+// 推荐人工干预（加权/降权/强制曝光）
+model JobBoost {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_id     String   @db.Uuid
+  boost      Decimal  @default(0) @db.Decimal(4, 2) // 正值加权 负值降权
+  forced     Boolean  @default(false) // 强制曝光位
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @updatedAt @db.Timestamptz
+
+  job Job @relation(fields: [job_id], references: [id], onDelete: Cascade)
+
+  @@unique([job_id])
+}
+
+// 推荐黑名单
+model RecommendationBlacklist {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_id     String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@unique([job_id])
+}
+
+// ================= 小时工 =================
+model HourlyJobApplication {
+  id         String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_id     String                  @db.Uuid
+  user_id    String                  @db.Uuid
+  status     HourlyApplicationStatus @default(APPLIED)
+  created_at DateTime                @default(now()) @db.Timestamptz
+
+  job     Job      @relation(fields: [job_id], references: [id])
+  user    User     @relation(fields: [user_id], references: [id])
+  reviews Review[]
+
+  @@unique([job_id, user_id])
+  @@index([user_id, status])
+  @@index([job_id, status])
+}
+
+// ================= 竞价置顶（job_boosts） =================
+model JobBiddingBoost {
+  id         String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id String                @db.Uuid
+  job_id     String                @db.Uuid
+  city       String                @db.VarChar(50)
+  job_type   BoostJobType?
+  bid        Decimal               @default(0) @db.Decimal(10, 2)
+  status     JobBiddingBoostStatus @default(PENDING)
+  start_date DateTime              @db.Date
+  end_date   DateTime              @db.Date
+  paused_at  DateTime?             @db.Timestamptz // 暂停时间（恢复时用于顺延结束日期）
+  total_cost Decimal               @default(0) @db.Decimal(10, 2)
+  created_at DateTime              @default(now()) @db.Timestamptz
+  updated_at DateTime              @updatedAt @db.Timestamptz
+
+  company Company @relation(fields: [company_id], references: [id])
+  job     Job     @relation(fields: [job_id], references: [id])
+
+  @@unique([job_id, city])
+  @@index([city, status, bid(sort: Desc)])
+  @@index([company_id, status])
+}
+
+// ================= 企业余额 =================
+model CompanyWallet {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id     String   @unique @db.Uuid
+  balance        Decimal  @default(0) @db.Decimal(10, 2)
+  frozen         Decimal  @default(0) @db.Decimal(10, 2)
+  total_recharge Decimal  @default(0) @db.Decimal(10, 2)
+  total_consume  Decimal  @default(0) @db.Decimal(10, 2)
+  created_at     DateTime @default(now()) @db.Timestamptz
+  updated_at     DateTime @updatedAt @db.Timestamptz
+
+  company Company @relation(fields: [company_id], references: [id])
+
+  @@index([company_id])
+}
+
+model WalletTransaction {
+  id            String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id    String               @db.Uuid
+  type          WalletTransactionType
+  amount        Decimal              @db.Decimal(10, 2)
+  balance_after Decimal              @db.Decimal(10, 2)
+  order_no      String?              @db.VarChar(64)
+  description   String?              @db.VarChar(200)
+  created_at    DateTime             @default(now()) @db.Timestamptz
+
+  company Company @relation(fields: [company_id], references: [id])
+
+  @@index([company_id])
+  @@index([type, created_at])
+}
+
+// ================= 聊天 =================
+model Conversation {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  job_id          String?   @db.Uuid
+  seeker_post_id  String?   @db.Uuid
+  candidate_id    String    @db.Uuid
+  company_id      String    @db.Uuid
+  last_message_at DateTime  @default(now()) @db.Timestamptz
+  created_at      DateTime  @default(now()) @db.Timestamptz
+  updated_at      DateTime  @updatedAt @db.Timestamptz
+
+  job         Job?          @relation(fields: [job_id], references: [id])
+  seeker_post SeekerPost?   @relation("ConversationSeekerPost", fields: [seeker_post_id], references: [id])
+  candidate   User          @relation("ConversationCandidate", fields: [candidate_id], references: [id])
+  company     Company       @relation(fields: [company_id], references: [id])
+  messages    Message[]
+  reviews     Review[]
+
+  @@unique([candidate_id, company_id, job_id])
+  @@index([company_id, last_message_at])
+  @@index([candidate_id, last_message_at])
+}
+
+model Message {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  conversation_id String    @db.Uuid
+  sender_id       String    @db.Uuid
+  content         String
+  read_at         DateTime? @db.Timestamptz
+  is_deleted      Boolean   @default(false)
+  deleted_by      String?   @db.Uuid
+  created_at      DateTime  @default(now()) @db.Timestamptz
+
+  conversation Conversation @relation(fields: [conversation_id], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [sender_id], references: [id])
+
+  @@index([conversation_id, created_at])
+}
+
+// ================= 评价 =================
+model Review {
+  id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reviewer_id      String     @db.Uuid
+  reviewee_type    ReviewType
+  company_id       String?    @db.Uuid
+  candidate_id     String?    @db.Uuid
+  conversation_id  String?    @db.Uuid
+  scope            ReviewScope @default(JOB)
+  hourly_application_id String? @db.Uuid
+  rating           Int        @db.SmallInt
+  content          String     @db.VarChar(500)
+  reply            String?    @db.VarChar(500)
+  reply_by         String?    @db.Uuid
+  reply_status     ReplyStatus @default(APPROVED)
+  reply_reviewed_by String?   @db.Uuid
+  edited_at        DateTime?  @db.Timestamptz
+  edit_count       Int        @default(0) @db.SmallInt
+  deleted_at       DateTime?  @db.Timestamptz
+  deleted_by       String?    @db.Uuid
+  created_at       DateTime   @default(now()) @db.Timestamptz
+  updated_at       DateTime   @updatedAt @db.Timestamptz
+
+  reviewer     User       @relation("ReviewReviewer", fields: [reviewer_id], references: [id])
+  company      Company?   @relation("CompanyReviews", fields: [company_id], references: [id])
+  candidate    User?      @relation("ReviewCandidate", fields: [candidate_id], references: [id])
+  conversation Conversation? @relation(fields: [conversation_id], references: [id])
+  hourly_application HourlyJobApplication? @relation(fields: [hourly_application_id], references: [id])
+  reply_reviewed_by_user User? @relation("ReplyReviewedBy", fields: [reply_reviewed_by], references: [id])
+  reply_by_user  User?    @relation("ReviewReplyBy", fields: [reply_by], references: [id])
+
+  @@index([company_id, deleted_at])
+  @@index([candidate_id, deleted_at])
+  @@index([scope])
+  @@index([reviewer_id, scope])
+}
+
+// ================= 收藏 =================
+model Favorite {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String   @db.Uuid
+  job_id     String   @db.Uuid
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  user User @relation(fields: [user_id], references: [id])
+  job  Job  @relation(fields: [job_id], references: [id])
+
+  @@unique([user_id, job_id])
+}
+
+// ================= 会员 / 订阅 / 支付 =================
+model Plan {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String   @db.VarChar(50)
+  price_monthly   Decimal? @db.Decimal(10, 2)
+  price_yearly    Decimal? @db.Decimal(10, 2)
+  job_limit       Int
+  can_feature     Boolean  @default(false)
+  can_view_contacts Boolean @default(false)
+  duration_days   Int
+  active          Boolean  @default(true)
+  created_at      DateTime @default(now()) @db.Timestamptz
+  updated_at      DateTime @updatedAt @db.Timestamptz
+
+  subscriptions Subscription[]
+  payments      Payment[]
+}
+
+model Subscription {
+  id         String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  company_id String             @db.Uuid
+  plan_id    String             @db.Uuid
+  status     SubscriptionStatus @default(ACTIVE)
+  start_at   DateTime           @db.Timestamptz
+  end_at     DateTime           @db.Timestamptz
+  created_at DateTime           @default(now()) @db.Timestamptz
+  updated_at DateTime           @updatedAt @db.Timestamptz
+
+  company Company @relation(fields: [company_id], references: [id])
+  plan    Plan    @relation(fields: [plan_id], references: [id])
+
+  @@index([company_id])
+  @@index([status, end_at])
+}
+
+model Payment {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order_no   String        @unique @db.VarChar(64)
+  company_id String        @db.Uuid
+  plan_id    String?       @db.Uuid
+  type       PaymentType   @default(SUBSCRIPTION)
+  amount     Decimal       @db.Decimal(10, 2)
+  channel    PaymentChannel
+  status     PaymentStatus @default(PENDING)
+  paid_at    DateTime?     @db.Timestamptz
+  note       String?       @db.VarChar(200)
+  created_at DateTime      @default(now()) @db.Timestamptz
+  updated_at DateTime      @updatedAt @db.Timestamptz
+
+  company Company @relation(fields: [company_id], references: [id])
+  plan    Plan?   @relation(fields: [plan_id], references: [id])
+
+  @@index([company_id])
+  @@index([status])
+}
+
+// ================= 举报 / 行为 / 通知 / 审计 =================
+model Report {
+  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  reporter_id String          @db.Uuid
+  target_type ReportTargetType
+  target_id  String           @db.Uuid
+  reason     String           @db.VarChar(200)
+  status     ReportStatus     @default(PENDING)
+  handled_by String?          @db.Uuid
+  created_at DateTime         @default(now()) @db.Timestamptz
+  updated_at DateTime         @updatedAt @db.Timestamptz
+
+  reporter User @relation(fields: [reporter_id], references: [id])
+
+  @@index([status])
+}
+
+model UserEvent {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String        @db.Uuid
+  job_id     String        @db.Uuid
+  event_type UserEventType
+  weight     Int           @db.SmallInt
+  created_at DateTime      @default(now()) @db.Timestamptz
+
+  user User @relation(fields: [user_id], references: [id])
+  job  Job  @relation(fields: [job_id], references: [id])
+
+  @@index([user_id, event_type, created_at])
+}
+
+model Notification {
+  id         String              @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String              @db.Uuid
+  type       NotificationType
+  title      String              @db.VarChar(100)
+  body       String?             @db.VarChar(500)
+  link       String?             @db.VarChar(300)
+  channel    NotificationChannel @default(INAPP)
+  read_at    DateTime?           @db.Timestamptz
+  created_at DateTime            @default(now()) @db.Timestamptz
+
+  user User @relation(fields: [user_id], references: [id])
+
+  @@index([user_id, read_at])
+  @@index([created_at])
+}
+
+model NotificationTemplate {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_type     String   @unique @db.VarChar(50)
+  title_template String   @db.VarChar(100)
+  body_template  String   @db.VarChar(500)
+  created_at     DateTime @default(now()) @db.Timestamptz
+  updated_at     DateTime @updatedAt @db.Timestamptz
+
+  rules NotificationRule[]
+}
+
+model NotificationRule {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  event_type String   @unique @db.VarChar(50)
+  template_id String  @db.Uuid
+  channels   String[] @default(["INAPP"]) @db.Text
+  enabled    Boolean  @default(true)
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @updatedAt @db.Timestamptz
+
+  template NotificationTemplate @relation(fields: [template_id], references: [id])
+}
+
+model AuditLog {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  admin_id    String   @db.Uuid
+  action      String   @db.VarChar(50)
+  target_type String   @db.VarChar(30)
+  target_id   String?  @db.VarChar(64)
+  detail      Json?
+  ip          String?  @db.VarChar(45)
+  created_at  DateTime @default(now()) @db.Timestamptz
+
+  admin User @relation(fields: [admin_id], references: [id])
+
+  @@index([admin_id])
+  @@index([created_at])
+}
+
+model LoginLog {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone      String?  @db.VarChar(20)
+  user_id    String?  @db.Uuid
+  success    Boolean  @default(false)
+  ip         String?  @db.VarChar(45)
+  user_agent String?  @db.VarChar(300)
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@index([created_at])
+  @@index([phone])
+}
+
+// ================= 敏感词 / 公告 =================
+model SensitiveWord {
+  id         String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  word       String             @unique @db.VarChar(100)
+  category   String?            @db.VarChar(30)
+  scope      SensitiveWordScope @default(ALL)
+  created_at DateTime           @default(now()) @db.Timestamptz
+}
+
+model Announcement {
+  id         String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type       AnnouncementType
+  title      String           @db.VarChar(100)
+  content    String?
+  image_url  String?          @db.VarChar(500)
+  sort       Int              @default(0)
+  active     Boolean          @default(true)
+  start_at   DateTime?        @db.Timestamptz
+  end_at     DateTime?        @db.Timestamptz
+  created_at DateTime         @default(now()) @db.Timestamptz
+  updated_at DateTime         @updatedAt @db.Timestamptz
+
+  @@index([type, active, sort])
+}
+
+// ================= 全站配置 =================
+model SiteConfig {
+  id                    Int       @id @default(1)
+  site_name             String    @default("职桥 JobBridge") @db.VarChar(50)
+  site_logo             String?   @db.VarChar(500)
+  register_enabled      Boolean   @default(true)
+  chat_enabled          Boolean   @default(true)
+  payment_enabled       Boolean   @default(true)
+  audit_mode            AuditMode @default(POST)
+  nearby_radius_km      Int       @default(50)
+  default_city          String    @default("全国") @db.VarChar(50)
+  page_size             Int       @default(20)
+  chat_rate_limit_per_min Int     @default(20)
+  sms_enabled            Boolean   @default(true)
+  sms_rate_limit_per_min  Int     @default(5)
+  token_ttl_min         Int       @default(30)
+  refresh_ttl_days      Int       @default(30)
+  upload_max_mb         Int       @default(10)
+  upload_allowed_types  String    @default("jpg,jpeg,png,pdf,doc,docx") @db.VarChar(100)
+  upload_driver         String    @default("local") @db.VarChar(20)
+  upload_base_url       String?   @db.VarChar(300)
+  rating_max            Int       @default(5) @db.SmallInt
+  maintenance_mode      Boolean   @default(false)
+  maintenance_msg       String?   @db.VarChar(200)
+  icp_no                String?   @db.VarChar(50)
+  contact_email         String?   @db.VarChar(100)
+  reply_review_review   Boolean   @default(false) // 回复审核开关
+  notify_by_sms         Boolean   @default(false)
+  queue_attempts        Int       @default(3)
+  queue_backoff_ms      Int       @default(1000)
+  queue_dlq_enabled     Boolean   @default(true)
+  boost_min_bid         Decimal   @default(1) @db.Decimal(10, 2) // 竞价置顶最低限价（元/天）
+  boost_create_limit_per_day Int  @default(3) // 同一企业同一职位同一城市每日创建置顶上限
+  boost_cancel_limit_per_day Int @default(2) // 同一企业同一职位每日取消置顶上限
+  hourly_review_min_hours Int    @default(24) // 小时工评价最低间隔小时数，0=不限制
+  call_logs_enabled     Boolean   @default(true) // 一键电话点击行为记录开关（v2.7 合规）
+  updated_at            DateTime  @updatedAt @db.Timestamptz
+}
+
+model SeoConfig {
+  id             Int      @id @default(1)
+  title          String   @default("职桥 JobBridge - 找工作，招人才") @db.VarChar(200)
+  description    String?  @db.VarChar(500)
+  keywords       String?  @db.VarChar(300)
+  sitemap_enabled Boolean @default(true)
+  updated_at     DateTime @updatedAt @db.Timestamptz
+}
+
+// 前台首页一级栏目（栏目管理，可增删改排序、启用停用）
+model NavMenu {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  label      String   @db.VarChar(50)
+  href       String   @db.VarChar(200)
+  sort       Int      @default(0)
+  active     Boolean  @default(true)
+  created_at DateTime @default(now()) @db.Timestamptz
+  updated_at DateTime @updatedAt @db.Timestamptz
+
+  @@index([active, sort])
+}
+
+// ================= 备份 =================
+model BackupConfig {
+  id              Int        @id @default(1)
+  auto_enabled    Boolean    @default(true)
+  schedule_cron   String     @default("0 3 * * *") @db.VarChar(50)
+  backup_type     BackupType @default(FULL)
+  storage_driver  String?    @db.VarChar(20)
+  encrypt         Boolean    @default(false)
+  retention_count Int        @default(14)
+  retention_days  Int        @default(30)
+  updated_at      DateTime   @updatedAt @db.Timestamptz
+}
+
+model DbBackup {
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  type           DbBackupType
+  format         BackupFormat   @default(CUSTOM)
+  storage_driver String         @db.VarChar(20)
+  file_path      String         @db.VarChar(500)
+  file_size      BigInt?
+  encrypted      Boolean        @default(false)
+  status         DbBackupStatus @default(RUNNING)
+  note           String?        @db.VarChar(200)
+  created_by     String?        @db.Uuid
+  created_at     DateTime       @default(now()) @db.Timestamptz
+
+  creator User? @relation(fields: [created_by], references: [id])
+
+  @@index([created_at])
+  @@index([status])
+}
+
+// ================= 条款 =================
+model Policy {
+  id            String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  key           String       @db.VarChar(30)
+  title         String       @db.VarChar(100)
+  version       Int          @default(1)
+  content       String
+  status        PolicyStatus @default(DRAFT)
+  published_at  DateTime?    @db.Timestamptz
+  published_by  String?      @db.Uuid
+  effective_from DateTime?   @db.Timestamptz
+  created_by    String       @db.Uuid
+  created_at    DateTime     @default(now()) @db.Timestamptz
+  updated_at    DateTime     @updatedAt @db.Timestamptz
+
+  creator   User?            @relation("PolicyCreatedBy", fields: [created_by], references: [id])
+  publisher User?            @relation("PolicyPublishedBy", fields: [published_by], references: [id])
+  agreements UserPolicyAgreement[]
+
+  @@unique([key, version])
+  @@index([key, status])
+}
+
+model UserPolicyAgreement {
+  id           String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id      String       @db.Uuid
+  policy_key   String       @db.VarChar(30)
+  policy_id    String       @db.Uuid
+  version      Int
+  content_hash String       @db.VarChar(64)
+  agreed_at    DateTime     @default(now()) @db.Timestamptz
+  ip           String       @db.VarChar(45)
+  user_agent   String?      @db.VarChar(300)
+  source       PolicySource @default(REGISTER)
+
+  user   User   @relation(fields: [user_id], references: [id])
+  policy Policy @relation(fields: [policy_id], references: [id])
+
+  @@index([user_id, policy_key, agreed_at])
+  @@index([policy_id])
+}
+
+// ================= 推荐权重 / 分析 =================
+model RecommendationConfig {
+  id                    Int       @id @default(1)
+  w_skill               Decimal   @default(4.0) @db.Decimal(4, 2)
+  w_type                Decimal   @default(2.0) @db.Decimal(4, 2)
+  w_city_located        Decimal   @default(6.0) @db.Decimal(4, 2)
+  w_city_expected       Decimal   @default(2.0) @db.Decimal(4, 2)
+  located_city_enabled  Boolean   @default(true)
+  w_behavior            Decimal   @default(1.0) @db.Decimal(4, 2)
+  w_b_view              Decimal   @default(1.0) @db.Decimal(4, 2)
+  w_b_favorite          Decimal   @default(3.0) @db.Decimal(4, 2)
+  w_b_chat              Decimal   @default(5.0) @db.Decimal(4, 2)
+  w_hot                 Decimal   @default(0.2) @db.Decimal(4, 2)
+  freshness_halflife_days Int    @default(14)
+  updated_at            DateTime  @updatedAt @db.Timestamptz
+}
+
+model PageView {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id    String?  @db.Uuid
+  session_id String   @db.VarChar(64)
+  path       String   @db.VarChar(300)
+  referer    String?  @db.VarChar(500)
+  user_agent String?  @db.VarChar(300)
+  device     String?  @db.VarChar(20)
+  province   String?  @db.VarChar(30)
+  duration_ms Int?
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@index([created_at])
+  @@index([path])
+  @@index([session_id])
+}
+
+model DailyStat {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  stat_date        DateTime @unique @db.Date
+  pv               Int      @default(0)
+  uv               Int      @default(0)
+  dau              Int      @default(0)
+  wau              Int      @default(0)
+  mau              Int      @default(0)
+  new_users        Int      @default(0)
+  new_companies    Int      @default(0)
+  new_jobs         Int      @default(0)
+  new_conversations Int     @default(0)
+  new_reviews      Int      @default(0)
+  paid_amount      Decimal  @default(0) @db.Decimal(12, 2)
+  active_companies Int      @default(0)
+  retention_d1     Decimal? @db.Decimal(5, 4)
+  retention_d7     Decimal? @db.Decimal(5, 4)
+  retention_d30    Decimal? @db.Decimal(5, 4)
+  created_at       DateTime @default(now()) @db.Timestamptz
+
+  @@index([stat_date])
+}
+
+// ================= 支付配置 =================
+model PaymentConfig {
+  id               String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  channel          PaymentChannel
+  merchant_id      String         @db.VarChar(64)
+  app_secret_enc   String?        @db.Text
+  cert_serial      String?        @db.VarChar(64)
+  platform_cert_enc String?
+  gateway_url      String?        @db.VarChar(300)
+  sandbox          Boolean        @default(false)
+  active           Boolean        @default(true)
+  created_at       DateTime       @default(now()) @db.Timestamptz
+  updated_at       DateTime       @updatedAt @db.Timestamptz
+
+  @@unique([channel])
+}
+
+// ================= 城市 =================
+model City {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String   @unique @db.VarChar(50)
+  province   String?  @db.VarChar(50)
+  lat        Decimal  @db.Decimal(9, 6)
+  lng        Decimal  @db.Decimal(9, 6)
+  coord_type String   @default("GCJ02") @db.VarChar(10)
+  source     String?  @db.VarChar(20)
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@index([province])
+}
+
+// ================= 短信 =================
+model SmsConfig {
+  id                  String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  provider            SmsProviderType
+  access_key          String         @db.VarChar(200)
+  secret_enc          String?        @db.Text
+  sign_name           String         @db.VarChar(50)
+  template_code_login String?        @db.VarChar(50)
+  template_code_notify String?       @db.VarChar(50)
+  endpoint            String?        @db.VarChar(300)
+  enabled             Boolean        @default(false)
+  is_primary          Boolean        @default(false)
+  created_at          DateTime       @default(now()) @db.Timestamptz
+  updated_at          DateTime       @updatedAt @db.Timestamptz
+
+  @@unique([provider])
+}
+
+model SmsCode {
+  id         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phone      String     @db.VarChar(20)
+  code       String     @db.VarChar(6)
+  purpose    SmsPurpose
+  attempts   Int        @default(0) @db.SmallInt
+  expire_at  DateTime   @db.Timestamptz
+  created_at DateTime   @default(now()) @db.Timestamptz
+
+  @@index([phone, purpose, created_at])
+}
+
+// ================= 求职信息 =================
+model SeekerPost {
+  id                String                @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           String                @db.Uuid
+  title             String                @db.VarChar(100)
+  expected_salary_min Int?
+  expected_salary_max Int?
+  city              String                @db.VarChar(50)
+  job_type          JobType?
+  experience        Experience?
+  education         String?               @db.VarChar(20)
+  skills            String[]              @db.Text
+  description       String?
+  show_phone        Boolean               @default(true)
+  status            SeekerPostStatus      @default(OPEN)
+  closed_reason     SeekerPostClosedReason?
+  views             Int                   @default(0)
+  created_at        DateTime              @default(now()) @db.Timestamptz
+  updated_at        DateTime              @updatedAt @db.Timestamptz
+
+  user User @relation(fields: [user_id], references: [id])
+  conversations Conversation[] @relation("ConversationSeekerPost")
+
+  @@index([city])
+  @@index([status, created_at])
+  @@index([user_id])
+}
+
+model CallLog {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  caller_id    String     @db.Uuid
+  callee_id    String     @db.Uuid
+  related_type CallLogType?
+  related_id   String?    @db.Uuid
+  created_at   DateTime   @default(now()) @db.Timestamptz
+
+  caller User @relation("CallLogCaller", fields: [caller_id], references: [id])
+  callee User @relation("CallLogCallee", fields: [callee_id], references: [id])
+}

@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "AuditLog" ALTER COLUMN "target_id" SET DATA TYPE VARCHAR(64);

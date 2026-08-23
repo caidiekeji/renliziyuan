@@ -1,0 +1,14 @@
+node_modules
+.next
+out
+.git
+.gitignore
+.env*
+!.env.example
+Dockerfile
+docker-compose.yml
+*.md
+.vscode
+.idea
+coverage
+uploads

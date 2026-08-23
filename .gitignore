@@ -39,3 +39,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# cookies / 敏感文件
+cookies.txt
+admc.txt
+
+# uploads（运行时生成）
+/uploads
+
+# 临时测试文件
+tmp-*

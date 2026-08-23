@@ -1,26 +1,171 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
+@theme {
+  /* 「职场 · 成长」青翠绿主色体系：可信、生机、专业 */
+  --color-primary: #0e7b63;
+  --color-primary-hover: #0b5f4c;
+  --color-primary-soft: #e3f3ee;
+  --color-primary-soft-hover: #d2ebe3;
+  --color-accent: #12a780;
+  --color-accent-hover: #0e8a68;
+  --color-accent-soft: #e0f6ef;
+  --color-bg: #ffffff;
+  --color-bg-subtle: #f7f9f8;
+  --color-text: #0f172a;
+  --color-text-secondary: #5b6472;
+  --color-border: #e2e9e6;
+  --color-danger: #e5484d;
+  --color-danger-hover: #c9373c;
+  --color-danger-soft: #fdebec;
+  --color-warning: #f5a623;
+  --color-warning-deep: #b7791f;
+  --color-warning-soft: #fef4e5;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  /* 容器最大宽度 1120px（设计方案 6.5）：覆盖 Tailwind max-w-6xl 默认 1152px */
+  --container-6xl: 70rem;
+  --shadow-card: 0 1px 2px rgba(23, 60, 50, 0.04), 0 1px 3px rgba(23, 60, 50, 0.05);
+  --shadow-card-hover: 0 1px 2px rgba(23, 60, 50, 0.04), 0 12px 24px -8px rgba(23, 60, 50, 0.14);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  --background: #ffffff;
+  --foreground: #0f172a;
+  color-scheme: light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scrollbar-gutter: stable;
+  /* 消除移动端点按/鼠标点击产生的蓝色聚焦边框 */
+  -webkit-tap-highlight-color: transparent;
+  /* 表单控件（复选/单选/开关/滑块）统一取品牌色 */
+  accent-color: var(--color-primary);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+/* 排版：标题收紧字距并保持整行平衡，数值用等宽数字便于金额/统计对齐 */
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.012em;
+  text-wrap: balance;
+  font-weight: 650;
+  font-variant-numeric: lining-nums;
+}
+strong { font-weight: 650; }
+code, kbd, samp, pre {
+  font-family: var(--font-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.tabular-nums { font-variant-numeric: tabular-nums; }
+
+/* 选区与光标跟随品牌色：让“非绘制表面”也带上系统语言 */
+::selection {
+  background: var(--color-primary-soft);
+  color: var(--color-text);
+}
+
+/* 输入类控件保留文本选中能力（可复制原文） */
+textarea,
+input[type="text"], input[type="tel"], input[type="search"], input[type="number"],
+input[type="password"], input[type="email"], input[type="url"], input[type="date"],
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+/* 交互“控件层”防误选中：点击/拖拽不产生高亮框，避免鼠标选中的边框干扰 */
+button, [role="button"], nav, select, option, summary,
+input[type="checkbox"], input[type="radio"], input[type="range"],
+.switch, .badge, th, thead, a[href] {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* 需要可选中的文本区域：显式加 .selectable 恢复选中 */
+.selectable, .selectable * {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
+/* 键盘可达性：为可交互元素提供清晰、统一的焦点环（中性描边，非品牌色） */
+:where(a, button, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+  outline: 2px solid var(--color-text);
+  outline-offset: 2px;
+}
+
+/* 指针触发焦点时不渲染焦点环，避免鼠标点击的视觉噪音（保留组件自身的 border 焦点态） */
+:where(a, button, input, select, textarea):focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* 极轻投影：仅卡片 hover 时增强 */
+.card {
+  @apply bg-white rounded-xl border border-border;
+  box-shadow: var(--shadow-card);
+}
+.card-hover {
+  transition: box-shadow 0.2s ease, transform 0.25s ease, border-color 0.2s ease;
+  will-change: box-shadow;
+}
+.card-hover:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 18%, var(--color-border));
+  box-shadow: var(--shadow-card-hover);
+}
+
+/* 主题化滚动条：从调色板取色 */
+* {
+  scrollbar-color: #c2d0c9 transparent;
+  scrollbar-width: thin;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-thumb {
+  background: #c2d0c9;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: #a9bcb2;
+  background-clip: padding-box;
+  border: 2px solid transparent;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* 轻交互节奏基线：为无自定义过渡的元素提供统一缓动（组件 Tailwind 过渡优先覆盖） */
+@media (hover: hover) {
+  a[href], button, [role="button"], label {
+    transition:
+      color 0.15s ease,
+      background-color 0.15s ease,
+      border-color 0.15s ease,
+      box-shadow 0.15s ease,
+      opacity 0.15s ease,
+      transform 0.15s ease;
+  }
+}
+
+/* 尊重系统减弱动效偏好：降低晕动与有损注意力的动画 */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
