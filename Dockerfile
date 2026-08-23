@@ -14,6 +14,8 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# 构建时预渲染需要 DATABASE_URL（占位值，运行时由 docker-compose 注入真实值）
+ENV DATABASE_URL="postgresql://postgres:build@localhost:5432/renliziyuan?schema=public"
 RUN npm install && npm run build
 
 # ---------- 3. 运行层 ----------
