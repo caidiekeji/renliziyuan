@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useToast } from '@/components/ui/Toast';
 import { api } from '@/lib/api';
 
@@ -28,8 +28,11 @@ export function PhoneButton({
 }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-
-  const isMobile = typeof window !== 'undefined' && /Android|iPhone|iPad|Mobile/i.test(navigator.userAgent);
+  // 移动端判断放 effect 内，避免 SSR/客户端首次渲染不一致导致 hydration 警告
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    setIsMobile(/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent));
+  }, []);
 
   const handle = async () => {
     setLoading(true);
@@ -53,7 +56,7 @@ export function PhoneButton({
       type="button"
       disabled={disabled || loading}
       onClick={handle}
-      className={`inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent bg-accent-soft px-4 py-2 text-sm font-medium text-accent transition-colors hover:bg-accent hover:text-white disabled:opacity-50 ${className}`}
+      className={`inline-flex items-center justify-center gap-1.5 rounded-lg border border-accent bg-accent-soft px-4 h-11 text-sm font-medium text-accent transition-colors duration-200 hover:bg-accent hover:text-white disabled:opacity-50 ${className}`}
     >
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1 1 .4 2 .7 2.9a2 2 0 0 1-.5 2.1L8 10a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.5c.9.3 1.9.6 2.9.7a2 2 0 0 1 1.7 2Z" />

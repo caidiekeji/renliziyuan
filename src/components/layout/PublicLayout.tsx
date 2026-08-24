@@ -251,12 +251,12 @@ function PublicHeaderInner() {
         </div>
       </div>
       {/* 移动端导航 */}
-      <nav className="flex items-center gap-1 border-t border-border px-4 py-1 md:hidden">
+      <nav className="flex items-center gap-1 overflow-x-auto border-t border-border px-4 py-1 md:hidden">
         {nav.map((n) => (
           <Link
             key={n.href}
             href={n.href + qs({ city: city !== '全国' ? city : undefined })}
-            className={`rounded-lg px-3 py-1 text-sm transition-colors duration-150 ${pathname.startsWith(n.href) ? 'bg-primary-soft font-medium text-text' : 'text-text-secondary'}`}
+            className={`shrink-0 rounded-lg px-3 py-1 text-sm transition-colors duration-150 ${pathname.startsWith(n.href) ? 'bg-primary-soft font-medium text-text' : 'text-text-secondary'}`}
           >
             {n.label}
           </Link>

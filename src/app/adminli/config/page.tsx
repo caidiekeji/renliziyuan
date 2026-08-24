@@ -5,6 +5,7 @@ import { DashboardShell } from '@/components/layout/DashboardShell';
 import { ADMIN_NAV } from '@/lib/admin-nav';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
+import { Empty } from '@/components/ui/Empty';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { PageLoading } from '@/components/ui/Spinner';
@@ -67,7 +68,7 @@ function ConfigContent() {
 
   if (guarding) return <PageLoading />;
   if (loading) return <PageLoading />;
-  if (!site) return null;
+  if (!site) return <Empty title="暂无配置" description="配置加载失败，请刷新重试" />;
 
   const setSiteField = (k: string, v: string | number | boolean) => setSite((s) => (s ? { ...s, [k]: v } : s));
   const setSeoField = (k: string, v: string | number | boolean) => setSeo((s) => ({ ...(s || {}), [k]: v }));
@@ -93,8 +94,8 @@ function ConfigContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="全局配置">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-lg font-bold text-text">全局配置</h1>
+      <div className="mb-5 flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-text">全局配置</h1>
         <Button onClick={save} loading={saving}>
           保存配置
         </Button>

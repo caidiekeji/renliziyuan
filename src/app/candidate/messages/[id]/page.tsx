@@ -9,5 +9,6 @@ export default function CandidateChatPage() {
   const { id } = useParams<{ id: string }>();
   const guarding = useRoleGuard(['CANDIDATE'], '/');
   if (guarding) return <PageLoading />;
+  // 聊天窗口独立全屏布局（自带返回头与输入框），避免被顶栏/底部 Tab 遮挡
   return <ChatWindow conversationId={id} viewAs="candidate" backPath="/candidate/messages" />;
 }

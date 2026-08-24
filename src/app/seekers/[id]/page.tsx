@@ -138,12 +138,12 @@ function SeekerDetailContent() {
           </div>
 
           {/* 操作 */}
-          <div className="mt-5 flex gap-2 border-t border-border pt-4">
-            <Button variant="secondary" className="flex-1" onClick={handleChat} loading={chatting}>
+          <div className="mt-5 flex flex-wrap gap-2 border-t border-border pt-4 sm:flex-nowrap">
+            <Button variant="secondary" className="min-w-24 flex-1" onClick={handleChat} loading={chatting}>
               {chatting ? '发起中…' : '私聊'}
             </Button>
-            {post.show_phone && <PhoneButton type="SEEKER_POST" targetId={post.id} className="flex-1" />}
-            <Button variant="ghost" className="flex-1" onClick={() => router.push('/seekers')}>
+            {post.show_phone && <PhoneButton type="SEEKER_POST" targetId={post.id} className="min-w-24 flex-1" />}
+            <Button variant="ghost" className="min-w-24 flex-1" onClick={() => router.push('/seekers')}>
               返回人才广场
             </Button>
           </div>

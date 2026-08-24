@@ -1,21 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { ToastProvider } from "@/components/ui/Toast";
 import { SiteConfigProvider } from "@/components/layout/SiteConfigProvider";
 import { AutoCityProvider } from "@/components/layout/AutoCityProvider";
 import { PageTracker } from "@/components/PageTracker";
+import { Heartbeat } from "@/components/Heartbeat";
 import { getSiteConfig, getSeoConfig, getNavMenus } from "@/lib/config";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
+  display: "swap",
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -37,12 +40,13 @@ export default async function RootLayout({
   const nav = (await getNavMenus()).map((n) => ({ id: n.id, label: n.label, href: n.href, sort: n.sort }));
   return (
     <html lang="zh-CN">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
         <AuthProvider>
           <ToastProvider>
             <SiteConfigProvider siteName={cfg.site_name} siteLogo={cfg.site_logo || ''} nav={nav}>
               <AutoCityProvider>
                 <PageTracker />
+                <Heartbeat />
                 {children}
               </AutoCityProvider>
             </SiteConfigProvider>

@@ -7,6 +7,7 @@ interface ToastItem {
   id: number;
   type: ToastType;
   message: string;
+  closing: boolean;
 }
 
 const ToastContext = createContext<{ toast: (type: ToastType, message: string) => void }>({
@@ -17,17 +18,26 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<ToastItem[]>([]);
   const idRef = useRef(0);
 
+  const dismiss = useCallback((id: number) => {
+    setItems((prev) => prev.map((t) => t.id === id ? { ...t, closing: true } : t));
+    setTimeout(() => setItems((prev) => prev.filter((t) => t.id !== id)), 300);
+  }, []);
+
   const toast = useCallback((type: ToastType, message: string) => {
     const id = ++idRef.current;
-    setItems((prev) => [...prev, { id, type, message }]);
-    setTimeout(() => setItems((prev) => prev.filter((t) => t.id !== id)), 3000);
-  }, []);
+    setItems((prev) => [...prev, { id, type, message, closing: false }]);
+    setTimeout(() => dismiss(id), 3000);
+  }, [dismiss]);
 
   const icon = (t: ToastType) =>
     t === 'success' ? '✓' : t === 'error' ? '✕' : 'ℹ';
 
   const color = (t: ToastType) =>
-    t === 'success' ? 'border-accent text-accent' : t === 'error' ? 'border-danger text-danger' : 'border-primary text-text';
+    t === 'success'
+      ? 'border-accent text-accent'
+      : t === 'error'
+        ? 'border-danger text-danger'
+        : 'border-primary text-primary';
 
   return (
     <ToastContext.Provider value={{ toast }}>
@@ -36,12 +46,23 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {items.map((t) => (
           <div
             key={t.id}
-            className={`pointer-events-auto flex items-start gap-2 rounded-lg border bg-white px-3 py-2.5 text-sm shadow-md ${color(t.type)}`}
+            className={`pointer-events-auto flex items-start gap-2.5 rounded-xl border bg-white px-4 py-3 text-sm shadow-lg ${
+              t.closing ? 'opacity-0 -translate-y-2' : 'opacity-100 translate-y-0'
+            } ${color(t.type)} transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]`}
           >
-            <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[10px]">
+            <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] font-semibold">
               {icon(t.type)}
             </span>
-            <span className="text-text">{t.message}</span>
+            <span className="flex-1 text-text">{t.message}</span>
+            <button
+              onClick={() => dismiss(t.id)}
+              className="shrink-0 text-text-secondary/50 hover:text-text-secondary"
+              aria-label="关闭"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M18 6 6 18M6 6l12 12" />
+              </svg>
+            </button>
           </div>
         ))}
       </div>

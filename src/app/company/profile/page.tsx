@@ -121,7 +121,7 @@ export default function CompanyProfilePage() {
   return (
     <CompanyShell>
       <div className="mb-4 flex flex-wrap items-center gap-2">
-        <h1 className="text-lg font-bold text-text">企业资料</h1>
+        <h1 className="text-xl font-semibold text-text">企业资料</h1>
         <Badge tone={current.company.verify_status === 'VERIFIED' ? 'success' : current.company.verify_status === 'PENDING' ? 'warning' : 'default'}>
           {COMPANY_VERIFY_LABEL[current.company.verify_status] || current.company.verify_status}
         </Badge>
@@ -162,7 +162,8 @@ export default function CompanyProfilePage() {
             </div>
             <Textarea label="企业简介" rows={5} maxLength={5000} placeholder="介绍公司业务、团队与文化…" value={form.description} disabled={isViewer} onChange={(e) => set('description', e.target.value)} />
 
-            <div className="flex flex-wrap gap-2 border-t border-border pt-4">
+            {/* 移动端 sticky 操作栏（底部 Tab 之上），桌面回到正常流 */}
+            <div className="sticky bottom-24 z-10 flex flex-wrap gap-2 border-t border-border bg-white pt-4 lg:static lg:border-0 lg:pt-0">
               {!isViewer && (
                 <Button onClick={save} loading={saving}>保存资料</Button>
               )}

@@ -85,7 +85,7 @@ function CompanyHourlyJobsContent() {
   return (
     <CompanyShell>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-bold text-text">小时工管理</h1>
+        <h1 className="text-xl font-semibold text-text">小时工管理</h1>
         <Link href="/company/jobs/new">
           <Button size="sm">发布小时工</Button>
         </Link>

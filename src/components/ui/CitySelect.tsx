@@ -46,8 +46,8 @@ export function CitySelect({
       <select
         value={value || ''}
         onChange={(e) => onChange(e.target.value)}
-        className={`w-full rounded-lg border bg-white px-3 text-sm text-text h-10 ${
-          error ? 'border-danger' : 'border-border hover:border-text-secondary/40 focus:border-text-secondary'
+        className={`w-full rounded-lg border bg-white px-3 text-sm text-text h-11 transition-colors duration-200 ${
+          error ? 'border-danger focus:ring-2 focus:ring-danger/20' : 'border-border hover:border-text-secondary/40 focus:border-primary focus:ring-2 focus:ring-primary/20'
         }`}
       >
         <option value="">{placeholder}</option>

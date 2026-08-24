@@ -6,6 +6,7 @@ import { DashboardShell } from '@/components/layout/DashboardShell';
 import { ADMIN_NAV } from '@/lib/admin-nav';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { Empty } from '@/components/ui/Empty';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -186,8 +187,8 @@ function JobTitlesContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="职位名称管理">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-bold text-text">职位名称管理</h1>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold text-text">职位名称管理</h1>
         <div className="flex gap-2">
           <Button size="sm" variant="secondary" onClick={() => setImportOpen(true)}>
             批量导入
@@ -198,16 +199,20 @@ function JobTitlesContent() {
         </div>
       </div>
 
-      <div className="mb-3 w-full sm:w-64">
-        <Select label="一级分类筛选" value={category} onChange={(e) => setCategory(e.target.value)}>
-          <option value="">全部分类</option>
-          {categories.map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </Select>
-      </div>
+      <Card className="mb-5 p-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="w-64">
+            <Select label="一级分类" value={category} onChange={(e) => setCategory(e.target.value)}>
+              <option value="">全部分类</option>
+              {categories.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </Select>
+          </div>
+        </div>
+      </Card>
 
       {loading ? (
         <PageLoading />
@@ -217,28 +222,28 @@ function JobTitlesContent() {
         <div className="card overflow-x-auto">
           <table className="w-full min-w-[640px] text-left text-sm">
             <thead>
-              <tr className="border-b border-border text-xs text-text-secondary">
-                <th className="px-4 py-2.5 font-medium">一级分类</th>
-                <th className="px-4 py-2.5 font-medium">子分类</th>
-                <th className="px-4 py-2.5 font-medium">名称</th>
-                <th className="px-4 py-2.5 font-medium">编码</th>
-                <th className="px-4 py-2.5 font-medium">排序</th>
-                <th className="px-4 py-2.5 font-medium">状态</th>
-                <th className="px-4 py-2.5 text-right font-medium">操作</th>
+              <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
+                <th className="px-3 py-3 font-medium">一级分类</th>
+                <th className="px-3 py-3 font-medium">子分类</th>
+                <th className="px-3 py-3 font-medium">名称</th>
+                <th className="px-3 py-3 font-medium">编码</th>
+                <th className="px-3 py-3 font-medium">排序</th>
+                <th className="px-3 py-3 font-medium">状态</th>
+                <th className="px-3 py-3 text-right font-medium">操作</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((it) => (
-                <tr key={it.id} className="border-b border-border last:border-0">
-                  <td className="px-4 py-2.5 text-text">{it.category}</td>
-                  <td className="px-4 py-2.5 text-text-secondary">{it.sub_category || '-'}</td>
-                  <td className="px-4 py-2.5 font-medium text-text">{it.name}</td>
-                  <td className="px-4 py-2.5 text-text-secondary">{it.code}</td>
-                  <td className="px-4 py-2.5 text-text-secondary">{it.sort}</td>
-                  <td className="px-4 py-2.5">
+                <tr key={it.id} className="border-b border-border last:border-0 hover:bg-bg-subtle/60">
+                  <td className="px-3 py-2.5 text-text">{it.category}</td>
+                  <td className="px-3 py-2.5 text-text-secondary">{it.sub_category || '-'}</td>
+                  <td className="px-3 py-2.5 font-medium text-text">{it.name}</td>
+                  <td className="px-3 py-2.5 text-text-secondary">{it.code}</td>
+                  <td className="px-3 py-2.5 text-text-secondary">{it.sort}</td>
+                  <td className="px-3 py-2.5">
                     <Badge tone={it.active ? 'success' : 'neutral'}>{it.active ? '启用' : '停用'}</Badge>
                   </td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-3 py-2.5">
                     <div className="flex justify-end gap-1.5">
                       <Button size="sm" variant="ghost" loading={busyId === it.id} onClick={() => toggle(it)}>
                         {it.active ? '下线' : '上线'}
@@ -255,10 +260,11 @@ function JobTitlesContent() {
               ))}
             </tbody>
           </table>
+          <div className="px-2 pb-2">
+            <Pagination page={page} pageSize={PAGE_SIZE} total={total} />
+          </div>
         </div>
       )}
-
-      <Pagination page={page} pageSize={PAGE_SIZE} total={total} />
 
       {/* 新增/编辑 */}
       <Modal

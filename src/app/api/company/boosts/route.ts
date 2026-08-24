@@ -56,11 +56,49 @@ export async function POST(req: NextRequest) {
   if (!job) return fail('JOB_NOT_FOUND', '职位不存在或不属于本企业', 404);
   if (job.status !== 'OPEN') return fail('JOB_NOT_ACTIVE', '职位未上线，不能置顶', 400);
 
+  // 余额校验 + 冻结（bid × 投放天数）
+  const days = Math.ceil((endDate.getTime() - startDate.getTime()) / 86_400_000) + 1;
+  const totalCost = Math.round(bid * days * 100) / 100;
+  try {
+    await freezeBoostFunds(companyId, totalCost, `竞价置顶-${city}${job.title}`);
+  } catch (e: any) {
+    if (e?.message === 'INSUFFICIENT_BALANCE') return fail('INSUFFICIENT_BALANCE', '企业余额不足，请先充值', 400);
+    return handleError(e);
+  }
+
   // 同一职位同一城市不能重复置顶（非终态记录存在即冲突）
-  const existing = await prisma.jobBiddingBoost.findFirst({
-    where: { job_id: jobId, city, status: { in: ['PENDING', 'ACTIVE', 'PAUSED'] } },
-  });
-  if (existing) return fail('BOOST_EXISTS', '该职位在该城市已存在置顶记录', 409);
+  // 并发防重：进入事务 + 企业行锁串行化，行锁内重查再创建
+  let boost: any;
+  try {
+    const b = await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "Company" WHERE id = ${companyId}::uuid FOR UPDATE`;
+      const existing = await tx.jobBiddingBoost.findFirst({
+        where: { job_id: jobId, city, status: { in: ['PENDING', 'ACTIVE', 'PAUSED'] } },
+      });
+      if (existing) throw new Error('BOOST_EXISTS');
+      // 清理同职位同城市的终态记录（EXPIRED），避免 @@unique([job_id, city]) 冲突导致重新置顶失败
+      await tx.jobBiddingBoost.deleteMany({ where: { job_id: jobId, city, status: 'EXPIRED' } });
+      return tx.jobBiddingBoost.create({
+        data: {
+          company_id: companyId,
+          job_id: jobId,
+          city,
+          job_type: jobType || undefined,
+          bid,
+          status: 'PENDING',
+          start_date: startDate,
+          end_date: endDate,
+          total_cost: totalCost,
+        },
+      });
+    });
+    boost = b;
+  } catch (e: any) {
+    if (e?.message === 'BOOST_EXISTS') return fail('BOOST_EXISTS', '该职位在该城市已存在置顶记录', 409);
+    // 创建失败：释放已冻结资金，避免资金悬挂
+    await releaseBoostFunds(companyId, totalCost, `竞价置顶创建失败释放-${city}${job.title}`).catch(() => undefined);
+    return handleError(e);
+  }
 
   // 套餐支持校验（免费版无置顶；标准版 ≤3；旗舰版不限）
   const sub = await prisma.subscription.findFirst({
@@ -83,36 +121,6 @@ export async function POST(req: NextRequest) {
   if (createdToday >= cfg.boost_create_limit_per_day)
     return fail('TOO_MANY_REQUESTS', `每日最多创建 ${cfg.boost_create_limit_per_day} 次置顶`, 429);
 
-  // 余额校验 + 冻结（bid × 投放天数）
-  const days = Math.ceil((endDate.getTime() - startDate.getTime()) / 86_400_000) + 1;
-  const totalCost = Math.round(bid * days * 100) / 100;
-  try {
-    await freezeBoostFunds(companyId, totalCost, `竞价置顶-${city}${job.title}`);
-  } catch (e: any) {
-    if (e?.message === 'INSUFFICIENT_BALANCE') return fail('INSUFFICIENT_BALANCE', '企业余额不足，请先充值', 400);
-    return handleError(e);
-  }
-
-  let boost;
-  try {
-    boost = await prisma.jobBiddingBoost.create({
-      data: {
-        company_id: companyId,
-        job_id: jobId,
-        city,
-        job_type: jobType || undefined,
-        bid,
-        status: 'PENDING',
-        start_date: startDate,
-        end_date: endDate,
-        total_cost: 0,
-      },
-    });
-  } catch (e) {
-    // 创建失败：释放已冻结资金，避免资金悬挂
-    await releaseBoostFunds(companyId, totalCost, `竞价置顶创建失败释放-${city}${job.title}`).catch(() => undefined);
-    return handleError(e);
-  }
   await auditLog({ adminId: user.id, action: 'CREATE_BOOST', targetType: 'BOOST', targetId: boost.id, detail: { companyId, jobId, city, bid, totalCost } });
   log('info', 'boost:created', { boostId: boost.id, companyId, totalCost });
   return created(boost);

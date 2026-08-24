@@ -182,8 +182,8 @@ function IndustryContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="行业管理">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-bold text-text">行业管理</h1>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold text-text">行业管理</h1>
         <Button size="sm" onClick={openCreate}>
           新增一级行业
         </Button>
@@ -198,13 +198,13 @@ function IndustryContent() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead>
-                <tr className="border-b border-border text-xs text-text-secondary">
-                  <th className="px-3 py-2 font-medium">行业名称</th>
-                  <th className="px-3 py-2 font-medium">编码</th>
-                  <th className="px-3 py-2 font-medium">级别</th>
-                  <th className="px-3 py-2 font-medium">排序</th>
-                  <th className="px-3 py-2 font-medium">状态</th>
-                  <th className="px-3 py-2 font-medium">操作</th>
+                <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
+                  <th className="px-3 py-3 font-medium">行业名称</th>
+                  <th className="px-3 py-3 font-medium">编码</th>
+                  <th className="px-3 py-3 font-medium">级别</th>
+                  <th className="px-3 py-3 font-medium">排序</th>
+                  <th className="px-3 py-3 font-medium">状态</th>
+                  <th className="px-3 py-3 font-medium">操作</th>
                 </tr>
               </thead>
               <tbody>{tree.flatMap((it) => renderRow(it, 0))}</tbody>

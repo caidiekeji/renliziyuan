@@ -78,7 +78,7 @@ function AuditContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="操作审计">
-      <h1 className="mb-4 text-lg font-bold text-text">操作审计（{total}）</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">操作审计（{total}）</h1>
 
       <Card className="mb-4 p-4">
         <div className="flex flex-wrap items-end gap-3">
@@ -101,7 +101,7 @@ function AuditContent() {
             />
           </div>
           <div className="flex gap-2">
-            <Button onClick={applyFilter}>筛选</Button>
+            <Button onClick={applyFilter}>搜索</Button>
             <Button
               variant="ghost"
               onClick={() => {
@@ -125,14 +125,14 @@ function AuditContent() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[900px] text-left text-sm">
               <thead>
-                <tr className="border-b border-border text-xs text-text-secondary">
-                  <th className="px-3 py-2 font-medium">操作人</th>
-                  <th className="px-3 py-2 font-medium">动作</th>
-                  <th className="px-3 py-2 font-medium">对象类型</th>
-                  <th className="px-3 py-2 font-medium">对象 ID</th>
-                  <th className="px-3 py-2 font-medium">详情</th>
-                  <th className="px-3 py-2 font-medium">IP</th>
-                  <th className="px-3 py-2 font-medium">时间</th>
+                <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
+                  <th className="px-3 py-3 font-medium">操作人</th>
+                  <th className="px-3 py-3 font-medium">动作</th>
+                  <th className="px-3 py-3 font-medium">对象类型</th>
+                  <th className="px-3 py-3 font-medium">对象 ID</th>
+                  <th className="px-3 py-3 font-medium">详情</th>
+                  <th className="px-3 py-3 font-medium">IP</th>
+                  <th className="px-3 py-3 font-medium">时间</th>
                 </tr>
               </thead>
               <tbody>

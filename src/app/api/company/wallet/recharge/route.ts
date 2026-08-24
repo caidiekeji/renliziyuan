@@ -17,10 +17,10 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}));
   const amount = Number(body.amount);
-  const channel = (body.channel || 'STRIPE') as PaymentChannel;
+  const channel = body.channel as PaymentChannel;
   if (!Number.isFinite(amount) || amount < 10 || amount > 10000)
     return fail('INVALID_AMOUNT', '充值金额需在 10~10000 元之间', 400);
-  if (!['ALIPAY', 'WECHAT', 'STRIPE'].includes(channel))
+  if (!['ALIPAY', 'WECHAT'].includes(channel))
     return fail('INVALID_CHANNEL', '支付渠道无效');
 
   try {

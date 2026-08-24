@@ -19,8 +19,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const data: any = {};
   if (body.action === 'approveReply') data.reply_status = 'APPROVED';
   if (body.action === 'rejectReply') data.reply_status = 'REJECTED';
-  if (body.content !== undefined) data.content = body.content;
-  if (body.rating !== undefined) data.rating = body.rating;
+  if (body.content !== undefined) {
+    if (typeof body.content !== 'string' || !body.content.trim() || body.content.length > 2000) return fail('VALIDATION_ERROR', '评价内容不合法');
+    data.content = body.content;
+  }
+  if (body.rating !== undefined) {
+    const r = Number(body.rating);
+    if (!Number.isInteger(r) || r < 1 || r > 5) return fail('VALIDATION_ERROR', '评分必须在 1-5 之间');
+    data.rating = r;
+  }
 
   if (Object.keys(data).length) await prisma.review.update({ where: { id }, data });
   await auditLog({ adminId: auth.admin.id, action: body.action || 'UPDATE_REVIEW', targetType: 'REVIEW', targetId: id, detail: body, ip: getClientIp(req) });

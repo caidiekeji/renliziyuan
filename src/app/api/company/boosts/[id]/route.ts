@@ -30,7 +30,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   if (bid < Number(cfg.boost_min_bid)) return fail('BID_TOO_LOW', `出价不能低于最低限价 ${cfg.boost_min_bid} 元/天`, 400);
   if (endDate.getTime() < startDate.getTime()) return fail('INVALID_DATE', '结束日期不能早于开始日期');
 
-  // 调整冻结额：释放旧剩余，按新参数冻结
+  // 调整冻结额：释放旧剩余，按新参数冻结；冻结失败时恢复旧冻结额，避免资金悬挂
   const today = new Date();
   const oldRemaining = remainingFrozen({ bid: Number(boost.bid), end_date: boost.end_date }, today);
   await releaseBoostFunds(boost.company_id, oldRemaining, `编辑置顶释放-${boost.job.title}`);
@@ -39,6 +39,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   try {
     await freezeBoostFunds(boost.company_id, newTotal, `竞价置顶-${boost.city}${boost.job.title}`);
   } catch (e: any) {
+    // 回滚：恢复旧冻结额（best-effort），失败仅告警避免死循环
+    await freezeBoostFunds(boost.company_id, oldRemaining, `编辑置顶回滚-${boost.job.title}`).catch((e2) => {
+      log('error', 'boost:edit-rollback-failed', { boostId: id, companyId: boost.company_id, oldRemaining, error: e2?.message });
+    });
     if (e?.message === 'INSUFFICIENT_BALANCE') return fail('INSUFFICIENT_BALANCE', '企业余额不足，请先充值', 400);
     return handleError(e);
   }

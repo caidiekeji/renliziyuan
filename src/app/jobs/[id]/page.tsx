@@ -249,7 +249,33 @@ function JobDetailContent() {
           </div>
         </div>
       </div>
-      <PublicFooter />
+
+      {/* 移动端底部操作栏：收藏 + 报名/发起沟通常驻，避免长内容页需滚动回顶部 */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white px-4 pb-[env(safe-area-inset-bottom)] pt-2 lg:hidden">
+        <div className="mx-auto flex max-w-6xl gap-2">
+          <Button variant="secondary" className="flex-1" onClick={toggleFavorite}>
+            {favorited ? '已收藏' : '收藏'}
+          </Button>
+          {job.is_hourly ? (
+            applied ? (
+              <Button variant="secondary" className="flex-1" loading={applying} onClick={cancelApply}>
+                取消报名
+              </Button>
+            ) : (
+              <Button className="flex-1" loading={applying} onClick={apply}>
+                {applying ? '报名中…' : '报名'}
+              </Button>
+            )
+          ) : (
+            <Button className="flex-1" onClick={startChat} loading={chatting}>
+              {chatting ? '发起中…' : '发起沟通'}
+            </Button>
+          )}
+        </div>
+      </div>
+      <div className="pb-20 lg:pb-0">
+        <PublicFooter />
+      </div>
     </div>
   );
 }

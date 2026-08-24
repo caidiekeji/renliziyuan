@@ -5,6 +5,20 @@ import { usePathname } from 'next/navigation';
 
 let cachedCoords: { lat: number; lng: number } | null = null;
 
+/** 模块级初始化：只执行一次，避免 Strict Mode 下 effect 双重执行导致生成多个 session_id */
+function getOrCreateSessionId(): string {
+  try {
+    let sid = window.localStorage.getItem('jobbridge_session_id');
+    if (!sid) {
+      sid = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      window.localStorage.setItem('jobbridge_session_id', sid);
+    }
+    return sid;
+  } catch {
+    return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  }
+}
+
 /** 上报路由变更埋点（fire-and-forget，metrics 失败不影响主流程） */
 export function PageTracker() {
   const pathname = usePathname();
@@ -12,21 +26,11 @@ export function PageTracker() {
   const enterRef = useRef<number>(Date.now());
 
   useEffect(() => {
-    // 稳定 session_id（localStorage 持久化）
-    try {
-      let sid = window.localStorage.getItem('jobbridge_session_id');
-      if (!sid) {
-        sid = crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-        window.localStorage.setItem('jobbridge_session_id', sid);
-      }
-      sessionRef.current = sid;
-    } catch {
-      sessionRef.current = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    }
+    sessionRef.current = getOrCreateSessionId();
   }, []);
 
   useEffect(() => {
-    const sessionId = sessionRef.current || `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    const sessionId = sessionRef.current || getOrCreateSessionId();
     const now = Date.now();
     const duration = Math.max(1, now - enterRef.current);
     enterRef.current = now;

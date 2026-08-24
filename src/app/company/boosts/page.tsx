@@ -167,7 +167,7 @@ function CompanyBoostsContent() {
   return (
     <CompanyShell>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-bold text-text">竞价置顶</h1>
+        <h1 className="text-xl font-semibold text-text">竞价置顶</h1>
         <Button size="sm" onClick={openCreate}>
           创建置顶
         </Button>

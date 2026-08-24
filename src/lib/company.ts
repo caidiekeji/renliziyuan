@@ -120,7 +120,7 @@ export interface PaymentItem {
   id: string;
   order_no: string;
   company_id: string;
-  plan_id: string;
+  plan_id: string | null; // 充值订单 plan_id 为 null
   amount: number | string;
   channel: string;
   status: string;
@@ -141,7 +141,7 @@ export interface City {
 export const COMPANY_ROLE_ORDER: Record<string, number> = { OWNER: 0, HR: 1, VIEWER: 2 };
 export const COMPANY_ROLE_LABEL: Record<string, string> = { OWNER: '所有者', HR: '管理员', VIEWER: '查看者' };
 export const MEMBER_STATUS_LABEL: Record<string, string> = { ACTIVE: '正常', INVITED: '待接受', REMOVED: '已移除' };
-export const CHANNEL_LABEL: Record<string, string> = { ALIPAY: '支付宝', WECHAT: '微信', STRIPE: '模拟支付' };
+export const CHANNEL_LABEL: Record<string, string> = { ALIPAY: '支付宝', WECHAT: '微信支付' };
 export const CLOSED_REASON_LABEL: Record<string, string> = {
   ADMIN: '管理员下线',
   COMPANY: '企业下线',

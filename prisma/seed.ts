@@ -331,6 +331,28 @@ async function main() {
   }
   console.log('企业钱包:', walletCount, '个');
 
+  // ---- 职位标签（幂等） ----
+  const JOB_TAGS = [
+    '五险一金', '双休', '年终奖', '带薪年假', '弹性工作',
+    '加班补贴', '交通补贴', '餐饮补贴', '住房补贴', '定期体检',
+    '节日福利', '团建活动', '培训机会', '晋升空间', '扁平管理',
+    '补充保险', '股票期权', '免费班车', '包吃包住', '周末双休',
+  ];
+  const existingTags = await prisma.jobTag.count();
+  if (existingTags === 0) {
+    await prisma.jobTag.createMany({
+      data: JOB_TAGS.map((name, i) => ({ name, sort: i })),
+    });
+    console.log('职位标签:', JOB_TAGS.length, '个');
+  }
+
+  // ---- 评价算法配置（幂等） ----
+  const rcCount = await prisma.ratingConfig.count();
+  if (rcCount === 0) {
+    await prisma.ratingConfig.create({ data: {} }); // 使用 schema 默认值
+    console.log('评价算法配置: 已创建（默认值）');
+  }
+
   console.log('✅ 播种完成');
 }
 

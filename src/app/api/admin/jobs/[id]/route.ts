@@ -72,6 +72,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const auth = await requireAdmin();
   if ('error' in auth) return auth.error;
   const { id } = await params;
+  const job = await prisma.job.findUnique({ where: { id } });
+  if (!job) return fail('JOB_NOT_FOUND', '职位不存在', 404);
   await prisma.job.update({ where: { id }, data: { deleted_at: new Date(), status: 'CLOSED', closed_reason: 'ADMIN' } });
   await auditLog({ adminId: auth.admin.id, action: 'DELETE_JOB', targetType: 'JOB', targetId: id, ip: getClientIp(req) });
   return ok({ success: true });

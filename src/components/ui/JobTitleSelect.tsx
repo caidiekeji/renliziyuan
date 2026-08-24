@@ -54,7 +54,7 @@ export function JobTitleSelect({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex h-10 w-full items-center justify-between rounded-lg border border-border bg-white px-3 text-sm text-text focus:border-text-secondary"
+        className="flex h-11 w-full items-center justify-between rounded-lg border border-border bg-white px-3 text-sm text-text transition-colors duration-200 hover:border-text-secondary/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
       >
         <span className={selected ? 'text-text' : 'text-text-secondary/60'}>
           {selected ? `${selected.category} · ${selected.name}` : placeholder}
@@ -89,7 +89,7 @@ export function JobTitleSelect({
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
             placeholder="搜索职位名称…"
-            className="mb-1.5 h-8 w-full rounded-md border border-border px-2 text-xs focus:border-text-secondary"
+            className="mb-1.5 h-9 w-full rounded-md border border-border px-2 text-xs transition-colors duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
           <div className="max-h-56 overflow-y-auto">
             {filtered.map((t) => (

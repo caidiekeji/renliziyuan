@@ -5,6 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { DashboardShell } from '@/components/layout/DashboardShell';
 import { ADMIN_NAV } from '@/lib/admin-nav';
 import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
 import { Empty } from '@/components/ui/Empty';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -126,16 +127,20 @@ function CitiesContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="城市库">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-bold text-text">城市库</h1>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold text-text">城市库</h1>
         <Button size="sm" onClick={openCreate}>
           新增城市
         </Button>
       </div>
 
-      <div className="mb-3 w-full sm:w-64">
-        <Input label="省份筛选" placeholder="如：浙江（支持模糊）" value={province} onChange={(e) => setProvince(e.target.value)} />
-      </div>
+      <Card className="mb-5 p-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="w-64">
+            <Input label="省份" placeholder="如：浙江（支持模糊）" value={province} onChange={(e) => setProvince(e.target.value)} />
+          </div>
+        </div>
+      </Card>
 
       {loading ? (
         <PageLoading />
@@ -146,13 +151,13 @@ function CitiesContent() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-left text-sm">
               <thead>
-                <tr className="border-b border-border text-xs text-text-secondary">
-                  <th className="px-3 py-2 font-medium">城市</th>
-                  <th className="px-3 py-2 font-medium">省份</th>
-                  <th className="px-3 py-2 font-medium">纬度</th>
-                  <th className="px-3 py-2 font-medium">经度</th>
-                  <th className="px-3 py-2 font-medium">坐标系</th>
-                  <th className="px-3 py-2 font-medium">操作</th>
+                <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
+                  <th className="px-3 py-3 font-medium">城市</th>
+                  <th className="px-3 py-3 font-medium">省份</th>
+                  <th className="px-3 py-3 font-medium">纬度</th>
+                  <th className="px-3 py-3 font-medium">经度</th>
+                  <th className="px-3 py-3 font-medium">坐标系</th>
+                  <th className="px-3 py-3 font-medium">操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -178,10 +183,11 @@ function CitiesContent() {
               </tbody>
             </table>
           </div>
+          <div className="px-2 pb-2">
+            <Pagination page={page} pageSize={PAGE_SIZE} total={total} />
+          </div>
         </div>
       )}
-
-      <Pagination page={page} pageSize={PAGE_SIZE} total={total} />
 
       <Modal
         open={open}

@@ -16,8 +16,6 @@ import { api, qs } from '@/lib/api';
 import { useMyCompanies, type Plan, type SubscriptionInfo, type PaymentItem, CHANNEL_LABEL } from '@/lib/company';
 import { SUB_STATUS_LABEL, PAYMENT_STATUS_LABEL, formatDate, formatDateTime } from '@/lib/utils';
 
-const CHANNELS = ['ALIPAY', 'WECHAT', 'STRIPE'];
-
 function BillingContent() {
   const guarding = useRoleGuard(['COMPANY', 'CANDIDATE'], '/');
   const router = useRouter();
@@ -32,7 +30,8 @@ function BillingContent() {
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null);
   const [payments, setPayments] = useState<PaymentItem[]>([]);
   const [paymentTotal, setPaymentTotal] = useState(0);
-  const [channel, setChannel] = useState('STRIPE');
+  const [channels, setChannels] = useState<{ channel: string; label: string }[]>([]);
+  const [channel, setChannel] = useState('');
   const [buyingId, setBuyingId] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -46,6 +45,16 @@ function BillingContent() {
       return;
     }
   }, [memberLoading, current, router]);
+
+  // 可用支付渠道：数据库已启用的真实渠道（不含模拟支付）
+  useEffect(() => {
+    api.get<{ channels: { channel: string; label: string }[] }>('/api/payments/channels').then((r) => {
+      if (!r.ok) return;
+      const list = r.data.channels || [];
+      setChannels(list);
+      setChannel((prev) => (list.some((c) => c.channel === prev) ? prev : list[0]?.channel || ''));
+    });
+  }, []);
 
   const load = useCallback(() => {
     if (!companyId) return;
@@ -78,6 +87,10 @@ function BillingContent() {
 
   const buy = async (planId: string) => {
     if (!isOwner) return;
+    if (channels.length === 0) {
+      toast('error', '暂无可用的支付方式，请先联系管理员配置支付渠道');
+      return;
+    }
     setBuyingId(planId);
     const res = await api.post<{ order_no: string | null; pay_url: string | null; amount: number | string }>('/api/payments', {
       plan_id: planId,
@@ -94,15 +107,37 @@ function BillingContent() {
       load();
       return;
     }
-    // 模拟支付：新窗口打开支付页，完成后轮询订单状态
     window.open(pay_url, '_blank');
     toast('info', '已打开支付窗口，请完成支付');
+    pollPaymentStatus(order_no);
+  };
+
+  // 待支付订单：重新发起支付
+  const payAgain = async (p: PaymentItem) => {
+    const res = await api.post<{ pay_url: string }>(`/api/payments/${p.order_no}/pay`);
+    if (!res.ok) return toast('error', res.error?.message || '获取支付链接失败');
+    window.open(res.data.pay_url, '_blank');
+    toast('info', '已打开支付窗口，请完成支付');
+    pollPaymentStatus(p.order_no);
+  };
+
+  // 待支付订单：取消（置为已失败，保留审计）
+  const cancelOrder = async (p: PaymentItem) => {
+    if (!window.confirm('确定取消该待支付订单吗？')) return;
+    const res = await api.del(`/api/payments/${p.order_no}`);
+    if (!res.ok) return toast('error', res.error?.message || '取消失败');
+    toast('success', '订单已取消');
+    load();
+  };
+
+  // 轮询订单状态，支付完成后刷新
+  const pollPaymentStatus = (orderNo: string) => {
     let tries = 0;
     const timer = setInterval(async () => {
       tries++;
       const r = await api.get<PaymentItem[]>('/api/payments' + qs({ page: 1, pageSize: 1 }));
       const latest = r.ok ? r.data[0] : null;
-      if (latest && latest.order_no === order_no && latest.status === 'PAID') {
+      if (latest && latest.order_no === orderNo && latest.status === 'PAID') {
         clearInterval(timer);
         toast('success', '支付成功，套餐已生效');
         load();
@@ -116,7 +151,7 @@ function BillingContent() {
 
   return (
     <CompanyShell>
-      <h1 className="mb-4 text-lg font-bold text-text">会员与账单</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">会员与账单</h1>
 
       {/* 当前订阅 */}
       <Card className="p-5">
@@ -170,10 +205,10 @@ function BillingContent() {
                 <Button
                   onClick={() => buy(pl.id)}
                   loading={buyingId === pl.id}
-                  disabled={isCurrent || !isOwner}
+                  disabled={isCurrent || !isOwner || (price > 0 && channels.length === 0)}
                   variant={isCurrent ? 'ghost' : 'primary'}
                 >
-                  {isCurrent ? '已生效' : price > 0 ? '立即购买' : '免费开通'}
+                  {isCurrent ? '已生效' : price > 0 ? (channels.length === 0 ? '暂不可购买' : '立即购买') : '免费开通'}
                 </Button>
               </Card>
             );
@@ -183,18 +218,23 @@ function BillingContent() {
 
       {/* 支付渠道 */}
       <Card className="mt-5 p-5">
-        <div className="flex flex-wrap items-end gap-4">
-          <div className="w-full sm:w-56">
-            <Select label="支付渠道" value={channel} onChange={(e) => setChannel(e.target.value)}>
-              {CHANNELS.map((c) => (
-                <option key={c} value={c}>
-                  {CHANNEL_LABEL[c] || c}
-                </option>
-              ))}
-            </Select>
+        {channels.length === 0 ? (
+          <div className="flex items-center gap-2">
+            <p className="text-sm text-text-secondary">暂无可用的支付方式，请先由管理员在后台配置支付宝/微信支付渠道。</p>
           </div>
-          <p className="pb-2 text-xs text-text-secondary">开发环境下仅「模拟支付」渠道可完成支付</p>
-        </div>
+        ) : (
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="w-full sm:w-56">
+              <Select label="支付渠道" value={channel} onChange={(e) => setChannel(e.target.value)}>
+                {channels.map((c) => (
+                  <option key={c.channel} value={c.channel}>
+                    {c.label}
+                  </option>
+                ))}
+              </Select>
+            </div>
+          </div>
+        )}
       </Card>
 
       {/* 支付流水 */}
@@ -221,7 +261,19 @@ function BillingContent() {
                     {p.paid_at ? ` · 支付于 ${formatDateTime(p.paid_at)}` : ''}
                   </p>
                 </div>
-                <p className="font-semibold text-text">¥{Number(p.amount).toFixed(2)}</p>
+                <div className="flex flex-wrap items-center gap-3">
+                  <p className="font-semibold text-text">¥{Number(p.amount).toFixed(2)}</p>
+                  {p.status === 'PENDING' && (
+                    <>
+                      <Button size="sm" variant="secondary" onClick={() => payAgain(p)}>
+                        去支付
+                      </Button>
+                      <Button size="sm" variant="ghost" onClick={() => cancelOrder(p)}>
+                        取消
+                      </Button>
+                    </>
+                  )}
+                </div>
               </div>
             </Card>
           ))}

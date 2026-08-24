@@ -342,41 +342,45 @@ function SensitivePanel() {
       ) : rows.length === 0 ? (
         <Empty title="暂无敏感词" />
       ) : (
-        <div className="card overflow-x-auto">
-          <table className="w-full min-w-[480px] text-left text-sm">
-            <thead>
-              <tr className="border-b border-border text-xs text-text-secondary">
-                <th className="px-4 py-2.5 font-medium">敏感词</th>
-                <th className="px-4 py-2.5 font-medium">分类</th>
-                <th className="px-4 py-2.5 font-medium">作用域</th>
-                <th className="px-4 py-2.5 text-right font-medium">操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((it) => (
-                <tr key={it.id} className="border-b border-border last:border-0">
-                  <td className="px-4 py-2.5 font-medium text-text">{it.word}</td>
-                  <td className="px-4 py-2.5 text-text-secondary">{it.category || '-'}</td>
-                  <td className="px-4 py-2.5">
-                    <Badge tone="warning">{SCOPE_LABEL[it.scope] || it.scope}</Badge>
-                  </td>
-                  <td className="px-4 py-2.5">
-                    <div className="flex justify-end gap-1.5">
-                      <Button size="sm" variant="ghost" onClick={() => openEdit(it)}>
-                        编辑
-                      </Button>
-                      <Button size="sm" variant="ghost" className="text-danger" onClick={() => setDeleting(it)}>
-                        删除
-                      </Button>
-                    </div>
-                  </td>
+        <div className="card">
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[480px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
+                  <th className="px-3 py-3 font-medium">敏感词</th>
+                  <th className="px-3 py-3 font-medium">分类</th>
+                  <th className="px-3 py-3 font-medium">作用域</th>
+                  <th className="px-3 py-3 text-right font-medium">操作</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {rows.map((it) => (
+                  <tr key={it.id} className="border-b border-border last:border-0 hover:bg-bg-subtle/60">
+                    <td className="px-3 py-2.5 font-medium text-text">{it.word}</td>
+                    <td className="px-3 py-2.5 text-text-secondary">{it.category || '-'}</td>
+                    <td className="px-3 py-2.5">
+                      <Badge tone="warning">{SCOPE_LABEL[it.scope] || it.scope}</Badge>
+                    </td>
+                    <td className="px-3 py-2.5">
+                      <div className="flex justify-end gap-1.5">
+                        <Button size="sm" variant="ghost" onClick={() => openEdit(it)}>
+                          编辑
+                        </Button>
+                        <Button size="sm" variant="ghost" className="text-danger" onClick={() => setDeleting(it)}>
+                          删除
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="px-2 pb-2">
+            <Pagination page={page} pageSize={PAGE_SIZE} total={total} />
+          </div>
         </div>
       )}
-      <Pagination page={page} pageSize={PAGE_SIZE} total={total} />
 
       <Modal
         open={open}
@@ -508,7 +512,7 @@ function ContentPageInner() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="运营内容">
-      <h1 className="mb-4 text-lg font-bold text-text">运营内容</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">运营内容</h1>
 
       <div className="mb-4 flex gap-1 rounded-lg bg-bg-subtle p-1">
         {TABS.map((t) => (

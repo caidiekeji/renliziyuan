@@ -1,78 +1,87 @@
 @import "tailwindcss";
 
 @theme {
-  /* 「职场 · 成长」青翠绿主色体系：可信、生机、专业 */
-  --color-primary: #0e7b63;
-  --color-primary-hover: #0b5f4c;
-  --color-primary-soft: #e3f3ee;
-  --color-primary-soft-hover: #d2ebe3;
-  --color-accent: #12a780;
-  --color-accent-hover: #0e8a68;
-  --color-accent-soft: #e0f6ef;
+  /* ── 品牌主色 30% — 蓝色：专业·信任（色环 ~230°） ── */
+  --color-primary: #1a5cff;
+  --color-primary-hover: #0f45cc;
+  --color-primary-soft: #e8efff;
+  --color-primary-soft-hover: #d6e2ff;
+  /* ── 强调色 10% — 翠绿：生机·成长（色环 ~160°，与主色相隔 ~70°→ 改用 #00b386 ~162°） ── */
+  --color-accent: #00b386;
+  --color-accent-hover: #009970;
+  --color-accent-soft: #e6f9f3;
+  /* ── 功能色 ── */
+  --color-success: #12b76a;
+  --color-success-soft: #ecfdf3;
+  --color-danger: #f04438;
+  --color-danger-hover: #d93a30;
+  --color-danger-soft: #fef3f2;
+  --color-warning: #f79009;
+  --color-warning-deep: #b57206;
+  --color-warning-soft: #fef6e6;
+  --color-rating: #f5a623;
+  /* ── 中性色 60% — Slate：稳定·清晰 ── */
   --color-bg: #ffffff;
-  --color-bg-subtle: #f7f9f8;
+  --color-bg-subtle: #f7f8fa;
   --color-text: #0f172a;
   --color-text-secondary: #5b6472;
-  --color-border: #e2e9e6;
-  --color-danger: #e5484d;
-  --color-danger-hover: #c9373c;
-  --color-danger-soft: #fdebec;
-  --color-warning: #f5a623;
-  --color-warning-deep: #b7791f;
-  --color-warning-soft: #fef4e5;
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  /* 容器最大宽度 1120px（设计方案 6.5）：覆盖 Tailwind max-w-6xl 默认 1152px */
+  --color-border: #e2e6ec;
+  /* ── 滚动条 ── */
+  --color-scrollbar: #d0d5dd;
+  --color-scrollbar-hover: #98a2b3;
+  /* ── 字体 ── */
+  --font-sans: var(--font-inter), "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  /* ── 容器 ── */
   --container-6xl: 70rem;
-  --shadow-card: 0 1px 2px rgba(23, 60, 50, 0.04), 0 1px 3px rgba(23, 60, 50, 0.05);
-  --shadow-card-hover: 0 1px 2px rgba(23, 60, 50, 0.04), 0 12px 24px -8px rgba(23, 60, 50, 0.14);
+  /* ── 投影 ── */
+  --shadow-card: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-card-hover: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-modal: 0 20px 60px rgba(15, 23, 42, 0.15);
 }
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
   color-scheme: light;
 }
 
 html {
   -webkit-text-size-adjust: 100%;
   scrollbar-gutter: stable;
-  /* 消除移动端点按/鼠标点击产生的蓝色聚焦边框 */
   -webkit-tap-highlight-color: transparent;
-  /* 表单控件（复选/单选/开关/滑块）统一取品牌色 */
   accent-color: var(--color-primary);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-sans), system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  font-variant-numeric: lining-nums tabular-nums;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
-/* 排版：标题收紧字距并保持整行平衡，数值用等宽数字便于金额/统计对齐 */
+/* 排版：标题收紧字距、数值等宽对齐 */
 h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.012em;
   text-wrap: balance;
-  font-weight: 650;
-  font-variant-numeric: lining-nums;
+  font-weight: 600;
+  color: var(--color-text);
 }
-strong { font-weight: 650; }
+strong { font-weight: 600; }
 code, kbd, samp, pre {
-  font-family: var(--font-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 .tabular-nums { font-variant-numeric: tabular-nums; }
 
-/* 选区与光标跟随品牌色：让“非绘制表面”也带上系统语言 */
+/* 选区跟随品牌色 */
 ::selection {
   background: var(--color-primary-soft);
   color: var(--color-text);
 }
 
-/* 输入类控件保留文本选中能力（可复制原文） */
+/* 输入类控件保留文本选中能力 */
 textarea,
 input[type="text"], input[type="tel"], input[type="search"], input[type="number"],
 input[type="password"], input[type="email"], input[type="url"], input[type="date"],
@@ -81,7 +90,7 @@ input[type="password"], input[type="email"], input[type="url"], input[type="date
   user-select: text;
 }
 
-/* 交互“控件层”防误选中：点击/拖拽不产生高亮框，避免鼠标选中的边框干扰 */
+/* 控件层防误选中 */
 button, [role="button"], nav, select, option, summary,
 input[type="checkbox"], input[type="radio"], input[type="range"],
 .switch, .badge, th, thead, a[href] {
@@ -90,41 +99,43 @@ input[type="checkbox"], input[type="radio"], input[type="range"],
   -webkit-touch-callout: none;
 }
 
-/* 需要可选中的文本区域：显式加 .selectable 恢复选中 */
+/* 可选中文本区域 */
 .selectable, .selectable * {
   -webkit-user-select: text;
   user-select: text;
   -webkit-touch-callout: default;
 }
 
-/* 键盘可达性：为可交互元素提供清晰、统一的焦点环（中性描边，非品牌色） */
+/* 键盘焦点环：品牌色 ring */
 :where(a, button, input, select, textarea, [role="button"], [tabindex]):focus-visible {
-  outline: 2px solid var(--color-text);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
-/* 指针触发焦点时不渲染焦点环，避免鼠标点击的视觉噪音（保留组件自身的 border 焦点态） */
+/* 鼠标点击不显示焦点环 */
 :where(a, button, input, select, textarea):focus:not(:focus-visible) {
   outline: none;
 }
 
-/* 极轻投影：仅卡片 hover 时增强 */
+/* ── 卡片 ── */
 .card {
   @apply bg-white rounded-xl border border-border;
   box-shadow: var(--shadow-card);
 }
 .card-hover {
-  transition: box-shadow 0.2s ease, transform 0.25s ease, border-color 0.2s ease;
+  transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+              border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   will-change: box-shadow;
 }
 .card-hover:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 18%, var(--color-border));
+  border-color: color-mix(in srgb, var(--color-primary) 20%, var(--color-border));
   box-shadow: var(--shadow-card-hover);
 }
 
-/* 主题化滚动条：从调色板取色 */
+/* ── 主题化滚动条 ── */
 * {
-  scrollbar-color: #c2d0c9 transparent;
+  scrollbar-color: var(--color-scrollbar) transparent;
   scrollbar-width: thin;
 }
 *::-webkit-scrollbar {
@@ -132,13 +143,13 @@ input[type="checkbox"], input[type="radio"], input[type="range"],
   height: 8px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #c2d0c9;
+  background: var(--color-scrollbar);
   border-radius: 4px;
   border: 2px solid transparent;
   background-clip: padding-box;
 }
 *::-webkit-scrollbar-thumb:hover {
-  background: #a9bcb2;
+  background: var(--color-scrollbar-hover);
   background-clip: padding-box;
   border: 2px solid transparent;
 }
@@ -146,20 +157,60 @@ input[type="checkbox"], input[type="radio"], input[type="range"],
   background: transparent;
 }
 
-/* 轻交互节奏基线：为无自定义过渡的元素提供统一缓动（组件 Tailwind 过渡优先覆盖） */
+/* ── 过渡基线 ── */
 @media (hover: hover) {
   a[href], button, [role="button"], label {
     transition:
-      color 0.15s ease,
-      background-color 0.15s ease,
-      border-color 0.15s ease,
-      box-shadow 0.15s ease,
-      opacity 0.15s ease,
-      transform 0.15s ease;
+      color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1),
+      transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 }
 
-/* 尊重系统减弱动效偏好：降低晕动与有损注意力的动画 */
+/* ── Modal 动画 ── */
+@keyframes modal-overlay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes modal-overlay-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+@keyframes modal-content-in {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes modal-content-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to { opacity: 0; transform: translateY(16px) scale(0.97); }
+}
+.modal-overlay {
+  animation: modal-overlay-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.modal-overlay-closing {
+  animation: modal-overlay-out 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.modal-content {
+  animation: modal-content-in 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+.modal-content-closing {
+  animation: modal-content-out 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ── Toast 动画 ── */
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+@keyframes toast-out {
+  from { opacity: 1; transform: translateX(-50%) translateY(0); }
+  to { opacity: 0; transform: translateX(-50%) translateY(-12px); }
+}
+
+/* ── 尊重减弱动效偏好 ── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

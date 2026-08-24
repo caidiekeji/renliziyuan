@@ -63,7 +63,19 @@ export async function GET(req: NextRequest) {
   }
 
   // ip 参数优先（客户端通过 ipify 检测的出口 IP），无则走服务端代理头/remoteAddress
+  // 校验：仅接受公网 IPv4，拒绝私网/保留/环回地址（防内网地址探测）
   const ip = req.nextUrl.searchParams.get('ip') || getClientIp(req);
+  const ipv4 = /^(\d{1,3}\.){3}\d{1,3}$/.test(ip);
+  if (!ipv4 || ip === '127.0.0.1' || ip === '::1') return fail('INVALID_PARAM', 'IP 参数无效', 400);
+  const parts = ip.split('.').map(Number);
+  const isPrivate =
+    parts[0] === 10 ||
+    parts[0] === 127 ||
+    (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) ||
+    (parts[0] === 192 && parts[1] === 168) ||
+    parts[0] === 0 ||
+    parts[0] >= 224;
+  if (isPrivate) return fail('INVALID_PARAM', 'IP 参数无效', 400);
   const loc = await ipLocation(ip);
   // 市级 → 县级（部分 IP 库粒度到县级市）→ 省级时回落逆地理（数据中心 IP 场景）
   let city = loc ? await matchCity(loc.city || '') : null;

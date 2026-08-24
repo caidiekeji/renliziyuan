@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { CompanyShell, CompanyGuard } from '@/components/company/CompanyShell';
 import { Badge } from '@/components/ui/Badge';
@@ -19,7 +19,6 @@ import { JOB_STATUS_LABEL, AUDIT_STATUS_LABEL, formatSalary, formatDate, JOB_TYP
 
 function JobsContent() {
   const guarding = useRoleGuard(['COMPANY', 'CANDIDATE'], '/');
-  const router = useRouter();
   const sp = useSearchParams();
   const { toast } = useToast();
   const { current } = useMyCompanies();
@@ -51,7 +50,7 @@ function JobsContent() {
 
   if (guarding) return <PageLoading />;
 
-  const act = async (fn: () => Promise<{ ok: boolean; data?: unknown; error?: { error?: string; message?: string } }>, okMsg: string, failMsg: string) => {
+  const act = async (fn: () => Promise<{ ok: boolean; data?: unknown; error?: { error?: string; message?: string } }>, okMsg: string, failMsg: string, onUpdate?: (data: any) => void) => {
     const res = await fn();
     if (!res.ok) {
       if (res.error?.error === 'JOB_LIMIT_EXCEEDED') toast('error', `${res.error.message}，可在「会员与账单」升级套餐`);
@@ -60,16 +59,20 @@ function JobsContent() {
       return;
     }
     toast('success', okMsg);
-    router.replace(`/company/jobs${page > 1 ? `?page=${page}` : ''}`);
+    onUpdate?.(res.data);
   };
 
   const close = (j: JobItem) =>
-    act(async () => api.post(`/api/jobs/${j.id}/close`), '职位已下线', '下线失败');
+    act(async () => api.post(`/api/jobs/${j.id}/close`), '职位已下线', '下线失败', () => {
+      setJobs((prev) => prev.map((x) => x.id === j.id ? { ...x, status: 'CLOSED' as const, closed_reason: 'COMPANY' } : x));
+    });
   const reopen = (j: JobItem) =>
     act(async () => {
       const res = await api.post<{ status: string }>(`/api/jobs/${j.id}/reopen`);
       return res;
-    }, '职位已重新上线', '重开失败');
+    }, '职位已上架', '上架失败', (data: any) => {
+      setJobs((prev) => prev.map((x) => x.id === j.id ? { ...x, status: 'OPEN' as const, closed_reason: null, audit_status: data?.status === 'PENDING_AUDIT' ? 'PENDING' : x.audit_status } : x));
+    });
   const feature = (j: JobItem) =>
     act(async () => api.post(`/api/jobs/${j.id}/feature`), '职位已置顶', '置顶失败');
 
@@ -84,15 +87,16 @@ function JobsContent() {
       return;
     }
     toast('success', '职位已删除');
+    setJobs((prev) => prev.filter((x) => x.id !== removing.id));
+    setTotal((t) => t - 1);
     setRemoving(null);
-    router.replace(`/company/jobs${page > 1 ? `?page=${page}` : ''}`);
   };
 
   return (
     <CompanyShell>
       <CompanyGuard>
         <div className="mb-4 flex items-center justify-between gap-2">
-          <h1 className="text-lg font-bold text-text">职位管理（{total}）</h1>
+          <h1 className="text-xl font-semibold text-text">职位管理（{total}）</h1>
           <Link href="/company/jobs/new">
             <Button size="sm">发布职位</Button>
           </Link>
@@ -143,7 +147,7 @@ function JobsContent() {
                         <Button variant="secondary" size="sm">恢复</Button>
                       </Link>
                     ) : (
-                      <Button variant="ghost" size="sm" onClick={() => reopen(j)}>重开</Button>
+                      <Button variant="ghost" size="sm" onClick={() => reopen(j)}>上架</Button>
                     )}
                     <Button variant="ghost" size="sm" onClick={() => setRemoving(j)}>删除</Button>
                   </div>

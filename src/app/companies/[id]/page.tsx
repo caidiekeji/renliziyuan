@@ -88,7 +88,7 @@ function CompanyContent() {
               </div>
               <div className="mt-2 flex items-center gap-2">
                 <Rating value={company.avg_rating} size={16} />
-                <span className="text-sm font-semibold text-text">{company.avg_rating ? company.avg_rating.toFixed(1) : '暂无'}</span>
+                <span className="text-sm font-semibold text-text">{company.avg_rating ? Number(company.avg_rating).toFixed(1) : '暂无'}</span>
                 <span className="text-xs text-text-secondary">{reviews?.review_count ?? company.review_count} 条评价</span>
               </div>
             </div>

@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/db/prisma';
-import { getRecommendationConfig } from '@/lib/config';
+import { getRecommendationConfig, getRatingConfig } from '@/lib/config';
 import { haversineKm } from '@/lib/geo';
 
 interface JobRow {
@@ -29,7 +29,7 @@ export interface UserFeatures {
  * 热力分：views 指数衰减 + 新鲜度半衰期
  */
 export async function scoreJob(job: JobRow, user: UserFeatures, userEvents: Map<string, number>): Promise<number> {
-  const cfg = await getRecommendationConfig();
+  const [cfg, rc] = await Promise.all([getRecommendationConfig(), getRatingConfig()]);
   const w = {
     skill: Number(cfg.w_skill),
     type: Number(cfg.w_type),
@@ -61,6 +61,15 @@ export async function scoreJob(job: JobRow, user: UserFeatures, userEvents: Map<
   const ageDays = (Date.now() - job.created_at.getTime()) / (24 * 3600 * 1000);
   const freshness = Math.pow(0.5, ageDays / cfg.freshness_halflife_days);
   score += hot * freshness;
+
+  // 评分因子：企业 avg_rating 映射到 0~1 加权；低评分企业按降权系数衰减（越小越靠后）
+  if (job.company?.avg_rating && rc.w_rating > 0) {
+    let ratingNorm = Math.max(0, Math.min(1, (Number(job.company.avg_rating) - 1) / 4)); // 1~5 映射到 0~1
+    if (rc.penalty_factor < 1 && Number(job.company.avg_rating) < rc.low_rating_threshold) {
+      ratingNorm *= rc.penalty_factor;
+    }
+    score += rc.w_rating * ratingNorm;
+  }
 
   return score;
 }

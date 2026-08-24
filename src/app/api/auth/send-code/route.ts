@@ -15,5 +15,6 @@ export async function POST(req: NextRequest) {
 
   const result = await sendVerificationCode(parsed.data.phone, parsed.data.purpose);
   if (!result.ok) return fail('SMS_SEND_FAILED', result.message);
-  return ok({ message: result.message, code: result.code });
+  // 验证码仅通过短信下发。仅开发模式（SMS_DEV_MODE=1）回传供本地/e2e 联调；生产环境绝不返回验证码
+  return ok({ message: result.message, ...(process.env.SMS_DEV_MODE === '1' ? { code: result.code } : {}) });
 }

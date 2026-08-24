@@ -15,8 +15,8 @@ import { useToast } from '@/components/ui/Toast';
 import { useRoleGuard } from '@/lib/route-guard';
 import { api } from '@/lib/api';
 
-const CHANNELS = ['ALIPAY', 'WECHAT', 'STRIPE'] as const;
-const CHANNEL_LABEL: Record<string, string> = { ALIPAY: '支付宝', WECHAT: '微信支付', STRIPE: 'Stripe' };
+const CHANNELS = ['ALIPAY', 'WECHAT'] as const;
+const CHANNEL_LABEL: Record<string, string> = { ALIPAY: '支付宝', WECHAT: '微信支付' };
 
 interface PaymentConfig {
   id: string;
@@ -107,7 +107,7 @@ function PaymentSettingsContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="支付设置">
-      <h1 className="mb-4 text-lg font-bold text-text">支付设置</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">支付设置</h1>
 
       {loading ? (
         <PageLoading />

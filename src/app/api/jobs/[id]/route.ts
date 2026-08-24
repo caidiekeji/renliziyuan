@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { ok, fail, handleError } from '@/lib/api/response';
+import { ok, fail, handleError, getClientIp } from '@/lib/api/response';
 import { getUserFromRequest, requireCompanyMember } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import { incrementJobViews } from '@/lib/analytics';
@@ -8,6 +8,18 @@ import { sensitiveWordFilter } from '@/lib/sensitive/filter';
 import { getSiteConfig } from '@/lib/config';
 
 export const dynamic = 'force-dynamic';
+
+/** 浏览量去重缓存：key = `${ip}:${jobId}`，value = 上次计数时间戳 */
+const viewDedup = new Map<string, number>();
+const VIEW_DEDUP_TTL = 10 * 60_000; // 10 分钟
+
+/** 定期清理过期条目，防止内存泄漏 */
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, ts] of viewDedup) {
+    if (now - ts > VIEW_DEDUP_TTL) viewDedup.delete(k);
+  }
+}, 60_000);
 
 /** 职位详情（公开） */
 export async function GET(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -23,7 +35,15 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ id: 
     },
   });
   if (!job) return fail('JOB_NOT_FOUND', '职位不存在或已下线', 404);
-  void incrementJobViews(job.id).catch(() => undefined);
+  // 浏览量去重：同 IP 10 分钟内对同一职位只计一次
+  const ip = getClientIp(req);
+  const dedupKey = `${ip}:${id}`;
+  const now = Date.now();
+  const lastView = viewDedup.get(dedupKey);
+  if (!lastView || now - lastView > VIEW_DEDUP_TTL) {
+    viewDedup.set(dedupKey, now);
+    void incrementJobViews(job.id).catch(() => undefined);
+  }
   return ok(job);
 }
 

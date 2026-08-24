@@ -229,11 +229,11 @@ function BillingContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="会员计费">
-      <h1 className="mb-4 text-lg font-bold text-text">会员计费</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">会员计费</h1>
 
       {/* 套餐管理 */}
       <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-base font-bold text-text">套餐管理</h2>
+        <h2 className="text-base font-semibold text-text">套餐管理</h2>
         <Button size="sm" onClick={openCreate}>
           新增套餐
         </Button>
@@ -248,16 +248,16 @@ function BillingContent() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-left text-sm">
               <thead>
-                <tr className="border-b border-border text-xs text-text-secondary">
-                  <th className="px-3 py-2 font-medium">套餐名</th>
-                  <th className="px-3 py-2 font-medium">月付</th>
-                  <th className="px-3 py-2 font-medium">年付</th>
-                  <th className="px-3 py-2 font-medium">职位上限</th>
-                  <th className="px-3 py-2 font-medium">置顶</th>
-                  <th className="px-3 py-2 font-medium">看联系方式</th>
-                  <th className="px-3 py-2 font-medium">时长(天)</th>
-                  <th className="px-3 py-2 font-medium">状态</th>
-                  <th className="px-3 py-2 font-medium">操作</th>
+                <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
+                  <th className="px-3 py-3 font-medium">套餐名</th>
+                  <th className="px-3 py-3 font-medium">月付</th>
+                  <th className="px-3 py-3 font-medium">年付</th>
+                  <th className="px-3 py-3 font-medium">职位上限</th>
+                  <th className="px-3 py-3 font-medium">置顶</th>
+                  <th className="px-3 py-3 font-medium">看联系方式</th>
+                  <th className="px-3 py-3 font-medium">时长(天)</th>
+                  <th className="px-3 py-3 font-medium">状态</th>
+                  <th className="px-3 py-3 font-medium">操作</th>
                 </tr>
               </thead>
               <tbody>

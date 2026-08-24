@@ -28,9 +28,9 @@ export function emitMessageDeleted(conversationId: string, messageId: string) {
   io.to(`conv:${conversationId}`).emit('chat:message-deleted', { messageId });
 }
 
-/** 校验 user 是否为会话参与者（求职者或企业有效成员）——chat:join/read/typing 防越权 */
-async function isParticipant(userId: string, conversationId: string): Promise<boolean> {
-  const conv = await prisma.conversation.findFirst({
+/** 校验 user 是否为会话参与者（求职者或企业有效成员）——chat:join/read/typing 防越权；返回 null 表示非参与者，返回对象供调用方检查 closed_at */
+async function getConversationMembership(userId: string, conversationId: string) {
+  return prisma.conversation.findFirst({
     where: {
       id: conversationId,
       OR: [
@@ -38,9 +38,8 @@ async function isParticipant(userId: string, conversationId: string): Promise<bo
         { company: { members: { some: { user_id: userId, status: 'ACTIVE' } } } },
       ],
     },
-    select: { id: true },
+    select: { id: true, closed_at: true },
   });
-  return !!conv;
 }
 
 /** 初始化 Socket.IO（Redis 多实例适配器 + JWT 认证 + 在线状态 + 消息事件） */
@@ -111,9 +110,11 @@ export async function initSocket(server: HttpServer) {
 
         const conversation = await prisma.conversation.findFirst({
           where: { id: payload.conversationId, OR: [{ candidate_id: user.id }, { company: { members: { some: { user_id: user.id, status: 'ACTIVE' } } } }] },
-          select: { id: true, candidate_id: true, company_id: true },
+          select: { id: true, candidate_id: true, company_id: true, closed_at: true },
         });
         if (!conversation) return ack?.({ ok: false, error: 'NOT_FOUND' });
+        // 管理员已关闭的会话禁止继续发消息
+        if (conversation.closed_at) return ack?.({ ok: false, error: 'CONVERSATION_CLOSED' });
 
         const message = await prisma.message.create({
           data: { conversation_id: conversation.id, sender_id: user.id, content },
@@ -148,20 +149,37 @@ export async function initSocket(server: HttpServer) {
     });
 
     socket.on('chat:read', async ({ conversationId }: { conversationId: string }) => {
-      if (!conversationId || !(await isParticipant(user.id, conversationId))) return;
-      await prisma.message.updateMany({
-        where: { conversation_id: conversationId, read_at: null },
-        data: { read_at: new Date() },
+      const conv = await getConversationMembership(user.id, conversationId);
+      if (!conversationId || !conv) return;
+      // 先查出将被标记已读的消息 ID，再更新，最后广播给对方
+      const unread = await prisma.message.findMany({
+        where: { conversation_id: conversationId, sender_id: { not: user.id }, read_at: null },
+        select: { id: true },
       });
+      if (unread.length) {
+        await prisma.message.updateMany({
+          where: { conversation_id: conversationId, sender_id: { not: user.id }, read_at: null },
+          data: { read_at: new Date() },
+        });
+        // 广播给会话房间（包括发送者自己，前端按 sender_id 过滤）
+        io?.to(`conv:${conversationId}`).emit('chat:read', {
+          conversationId,
+          messageIds: unread.map((m) => m.id),
+        });
+      }
     });
 
     socket.on('chat:join', async ({ conversationId }: { conversationId: string }) => {
-      if (!conversationId || !(await isParticipant(user.id, conversationId))) return;
+      if (!conversationId) return;
+      // chat:join 仅验证参与权（不拦截已关闭会话，确保 chat:closed 事件能实时到达）
+      const conv = await getConversationMembership(user.id, conversationId);
+      if (!conv) return;
       socket.join(`conv:${conversationId}`);
     });
 
     socket.on('chat:typing', async ({ conversationId, isTyping }: { conversationId: string; isTyping: boolean }) => {
-      if (!conversationId || !(await isParticipant(user.id, conversationId))) return;
+      const conv = await getConversationMembership(user.id, conversationId);
+      if (!conv || conv.closed_at) return;
       socket.to(`conv:${conversationId}`).emit('chat:typing', { userId: user.id, conversationId, isTyping });
     });
 

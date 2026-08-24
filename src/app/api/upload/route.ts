@@ -4,7 +4,6 @@ import { getUserFromRequest } from '@/lib/auth/session';
 import { getSiteConfig } from '@/lib/config';
 import { getUploadDriver } from '@/lib/upload/driver';
 import { rateLimit } from '@/lib/middleware/rate-limit';
-import path from 'path';
 import Busboy from 'busboy';
 
 export const dynamic = 'force-dynamic';
@@ -26,7 +25,7 @@ export async function POST(req: NextRequest) {
   if (!(await rateLimit(`upload:${user.id}`, 30, 60))) return fail('RATE_LIMITED', '上传过于频繁', 429);
 
   const cfg = await getSiteConfig();
-  const allowedTypes = cfg.upload_allowed_types.split(',').map((t) => t.trim());
+  const allowedTypes = cfg.upload_allowed_types.split(',').map((t: string) => t.trim());
   const maxBytes = cfg.upload_max_mb * 1024 * 1024;
 
   const contentType = req.headers.get('content-type') || '';
@@ -40,9 +39,10 @@ export async function POST(req: NextRequest) {
     let pendingSave: Promise<void> = Promise.resolve();
 
     busboy.on('file', (name, stream, info) => {
-      const { mimeType, filename } = info;
-      const ext = MIME_MAP[mimeType] || path.extname(filename).toLowerCase().replace('.', '');
-      if (!allowedTypes.includes(ext.replace('.', ''))) {
+      const { mimeType } = info;
+      // 仅信任 MIME 白名单，避免双重后缀（如 malware.jpg.exe）绕过扩展名校验
+      const ext = MIME_MAP[mimeType];
+      if (!ext || !allowedTypes.includes(ext.replace('.', ''))) {
         uploadError = '不支持的文件类型';
         stream.resume();
         return;
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
         }
         pendingSave = (async () => {
           try {
-            saved = await driver.save(buffer, MIME_MAP[mimeType] || `.${ext}`, mimeType, 'misc');
+            saved = await driver.save(buffer, MIME_MAP[mimeType], mimeType, 'misc');
           } catch (e: any) {
             uploadError = e?.message || '上传失败';
           }

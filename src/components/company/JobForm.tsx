@@ -26,7 +26,7 @@ interface FormState {
   job_type: string;
   experience: string;
   education: string;
-  tags: string;
+  tags: string[];
   is_featured: boolean;
   is_hourly: boolean;
   hourly_rate: string;
@@ -48,7 +48,7 @@ const EMPTY_FORM: FormState = {
   job_type: 'FULL_TIME',
   experience: '',
   education: '',
-  tags: '',
+  tags: [],
   is_featured: false,
   is_hourly: false,
   hourly_rate: '',
@@ -73,7 +73,7 @@ function toForm(j: JobItem): FormState {
     job_type: j.job_type || 'FULL_TIME',
     experience: j.experience || '',
     education: j.education || '',
-    tags: (j.tags || []).join(', '),
+    tags: j.tags || [],
     is_featured: !!j.is_featured,
     is_hourly: !!j.is_hourly,
     hourly_rate: j.hourly_rate != null ? String(j.hourly_rate) : '',
@@ -90,10 +90,12 @@ export function JobForm({ mode, initial }: { mode: 'create' | 'edit'; initial?: 
   const { toast } = useToast();
   const [form, setForm] = useState<FormState>(() => (initial ? toForm(initial) : EMPTY_FORM));
   const [cities, setCities] = useState<City[]>([]);
+  const [availableTags, setAvailableTags] = useState<{ id: string; name: string }[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     api.get<City[]>('/api/cities').then((r) => r.ok && setCities(r.data));
+    api.get<{ id: string; name: string }[]>('/api/job-tags').then((r) => r.ok && setAvailableTags(r.data));
   }, []);
 
   useEffect(() => {
@@ -138,10 +140,7 @@ export function JobForm({ mode, initial }: { mode: 'create' | 'edit'; initial?: 
       job_type: form.job_type,
       experience: form.experience || undefined,
       education: form.education || undefined,
-      tags: form.tags
-        .split(/[,，]/)
-        .map((t) => t.trim())
-        .filter(Boolean),
+      tags: form.tags,
       is_featured: form.is_featured,
       is_hourly: form.is_hourly,
       hourly_rate: form.is_hourly ? Number(form.hourly_rate) : undefined,
@@ -186,6 +185,7 @@ export function JobForm({ mode, initial }: { mode: 'create' | 'edit'; initial?: 
           <Select label="薪资单位" value={form.salary_unit} onChange={(e) => set('salary_unit', e.target.value)}>
             <option value="MONTH_K">月薪（K）</option>
             <option value="DAY_YUAN">日薪（元/天）</option>
+            <option value="HOUR_YUAN">时薪（元/小时）</option>
           </Select>
           <div>
             <CitySelect label="工作城市" value={form.city} onChange={onCityChange} />
@@ -220,7 +220,31 @@ export function JobForm({ mode, initial }: { mode: 'create' | 'edit'; initial?: 
             ))}
           </Select>
         </div>
-        <Input label="标签（逗号分隔）" placeholder="如：五险一金, 弹性工作" value={form.tags} onChange={(e) => set('tags', e.target.value)} />
+        <div>
+          <label className="mb-1.5 block text-sm font-medium text-text">职位标签</label>
+          <div className="flex flex-wrap gap-2">
+            {availableTags.map((tag) => {
+              const selected = form.tags.includes(tag.name);
+              return (
+                <button
+                  key={tag.id}
+                  type="button"
+                  onClick={() =>
+                    set('tags', selected ? form.tags.filter((t) => t !== tag.name) : [...form.tags, tag.name])
+                  }
+                  className={`rounded-full border px-3 py-1 text-sm transition-colors ${
+                    selected
+                      ? 'border-primary bg-primary-soft text-primary font-medium'
+                      : 'border-border text-text-secondary hover:border-primary/40'
+                  }`}
+                >
+                  {tag.name}
+                </button>
+              );
+            })}
+            {availableTags.length === 0 && <span className="text-sm text-text-secondary">加载中…</span>}
+          </div>
+        </div>
         <Textarea
           label="职位描述"
           placeholder="详细介绍岗位职责、任职要求、福利待遇…"
@@ -233,13 +257,16 @@ export function JobForm({ mode, initial }: { mode: 'create' | 'edit'; initial?: 
           <input type="checkbox" checked={form.is_featured} onChange={(e) => set('is_featured', e.target.checked)} className="h-4 w-4 accent-primary" />
           置顶推荐（需套餐支持）
         </label>
-        <div className="flex gap-2">
-          <Button onClick={submit} loading={saving}>
-            {mode === 'create' ? '发布职位' : '保存修改'}
-          </Button>
-          <Button variant="ghost" onClick={() => router.back()}>
-            取消
-          </Button>
+        {/* 移动端 sticky 提交栏（底部 Tab 之上），桌面回到正常流 */}
+        <div className="sticky bottom-24 z-10 border-t border-border bg-white pt-3 lg:static lg:border-0 lg:pt-0">
+          <div className="flex gap-2">
+            <Button onClick={submit} loading={saving}>
+              {mode === 'create' ? '发布职位' : '保存修改'}
+            </Button>
+            <Button variant="ghost" onClick={() => router.back()}>
+              取消
+            </Button>
+          </div>
         </div>
       </div>
     </div>

@@ -49,7 +49,7 @@ export function JobCard({ job, action }: { job: JobCardData; action?: React.Reac
             <p className="mt-1 flex items-center gap-1.5 text-sm text-text-secondary">
               <span className="max-w-40 truncate">{job.company?.name}</span>
               {job.company?.verify_status === 'VERIFIED' && (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="#12a780" className="shrink-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--color-accent)" className="shrink-0">
                   <path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5l-8-3Zm-1.2 13.6-3-3 1.4-1.4 1.6 1.6 3.8-3.8 1.4 1.4-5.2 5.2Z" />
                 </svg>
               )}

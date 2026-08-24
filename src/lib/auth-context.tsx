@@ -1,7 +1,8 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { api, setApiCompanyContext } from './api';
+import { io, type Socket } from 'socket.io-client';
 
 export interface MyCompany {
   id: string;
@@ -72,6 +73,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setApiCompanyContext(saved);
     }
   }, [refresh]);
+
+  // 全局 socket：登录后建立，接收未读通知（不依赖 ChatWindow 是否挂载）
+  const globalSocketRef = useRef<Socket | null>(null);
+  useEffect(() => {
+    if (!user) return;
+    const connect = async () => {
+      const t = await api.get<{ token: string }>('/api/socket-token');
+      if (!t.ok) return;
+      const s = io({ path: '/socket.io', auth: { token: t.data.token } });
+      globalSocketRef.current = s;
+      s.on('chat:unread', ({ conversationId }: { conversationId: string }) => {
+        window.dispatchEvent(new CustomEvent('chat:unread-inc', { detail: { conversationId } }));
+      });
+    };
+    connect();
+    return () => {
+      globalSocketRef.current?.disconnect();
+      globalSocketRef.current = null;
+    };
+  }, [user?.id]);
+
+  // 监听已读事件，实时更新侧栏角标（递减）
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { messageIds } = (e as CustomEvent).detail;
+      setUser((prev) => prev ? { ...prev, unread: Math.max(0, prev.unread - messageIds.length) } : prev);
+    };
+    window.addEventListener('chat:read', handler);
+    return () => window.removeEventListener('chat:read', handler);
+  }, []);
+
+  // 监听新消息，实时更新侧栏角标（递增，当前活跃对话除外）
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const { conversationId } = (e as CustomEvent).detail;
+      const active = (window as any).__activeConversationId;
+      if (active === conversationId) return; // 正在看该对话，不算未读
+      setUser((prev) => prev ? { ...prev, unread: prev.unread + 1 } : prev);
+    };
+    window.addEventListener('chat:unread-inc', handler);
+    return () => window.removeEventListener('chat:unread-inc', handler);
+  }, []);
 
   const logout = useCallback(async () => {
     await api.post('/api/auth/logout').catch(() => {});

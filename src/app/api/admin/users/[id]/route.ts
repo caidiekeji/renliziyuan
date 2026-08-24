@@ -33,8 +33,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const data: any = {};
   if (body.status && ['ACTIVE', 'BANNED'].includes(body.status)) data.status = body.status;
   if (body.role && ['CANDIDATE', 'COMPANY', 'ADMIN'].includes(body.role)) data.role = body.role;
-  if (body.chat_muted_until) data.chat_muted_until = new Date(body.chat_muted_until);
-  if (body.chat_muted_until === null) data.chat_muted_until = null;
+  if (body.chat_muted_until !== undefined) {
+    if (body.chat_muted_until === null) {
+      data.chat_muted_until = null;
+    } else {
+      const t = new Date(body.chat_muted_until);
+      if (Number.isNaN(t.getTime())) return fail('VALIDATION_ERROR', '禁言时间格式不正确');
+      data.chat_muted_until = t;
+    }
+  }
   // 封禁时立即失效其 refresh token（access 仍短窗口，由 getCurrentUser 的 status 校验兜底）
   if (data.status === 'BANNED') data.refresh_token_version = { increment: 1 };
   try {
@@ -56,9 +63,27 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ i
   const { id } = await params;
   const user = await prisma.user.findUnique({ where: { id } });
   if (!user) return fail('USER_NOT_FOUND', '用户不存在', 404);
+  // 注销入释放池：phone 可能为 null（邮箱注册或已脱敏），无手机号则不占用释放池
+  const poolOps = user.phone
+    ? [prisma.phoneReleasePool.create({ data: { phone: user.phone, old_user_id: user.id } })]
+    : [];
   await prisma.$transaction([
-    prisma.user.update({ where: { id }, data: { status: 'DELETED', deleted_at: new Date() } }),
-    prisma.phoneReleasePool.create({ data: { phone: user.phone!, old_user_id: user.id } }),
+    prisma.user.update({
+      where: { id },
+      data: {
+        status: 'DELETED',
+        deleted_at: new Date(),
+        refresh_token_version: { increment: 1 },
+        // 敏感字段脱敏（与用户自助注销一致）
+        name: '已注销用户',
+        phone: null,
+        email: null,
+        avatar: null,
+        bio: null,
+        skills: [],
+      },
+    }),
+    ...poolOps,
   ]);
   kickUser(id, '账号已被注销');
   await auditLog({ adminId: auth.admin.id, action: 'DELETE_USER', targetType: 'USER', targetId: id, ip: getClientIp(req) });

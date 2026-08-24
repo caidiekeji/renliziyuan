@@ -111,7 +111,12 @@ export type RestoreResult =
 export async function restoreBackup(id: string, adminId: string): Promise<RestoreResult> {
   const backup = await prisma.dbBackup.findUnique({ where: { id } });
   if (!backup || backup.status !== 'OK') return { ok: false, error: 'BACKUP_NOT_READY', stage: 'validate' };
-  if (!fs.existsSync(backup.file_path)) return { ok: false, error: 'BACKUP_FILE_MISSING', stage: 'validate' };
+  // 路径校验：恢复文件必须位于备份目录内，防路径遍历执行任意文件
+  const backupDir = path.resolve(process.env.BACKUP_DIR || path.join(process.cwd(), '.backups'));
+  const resolvedPath = path.resolve(backup.file_path);
+  if (resolvedPath !== backupDir && !resolvedPath.startsWith(backupDir + path.sep))
+    return { ok: false, error: 'BACKUP_INVALID_PATH', stage: 'validate' };
+  if (!fs.existsSync(resolvedPath)) return { ok: false, error: 'BACKUP_FILE_MISSING', stage: 'validate' };
 
   const cfg = await prisma.siteConfig.findUnique({ where: { id: 1 } });
   const prevMaintenance = cfg?.maintenance_mode ?? false;
@@ -129,7 +134,7 @@ export async function restoreBackup(id: string, adminId: string): Promise<Restor
 
   // 执行恢复
   try {
-    await runRestore(backup.file_path);
+    await runRestore(resolvedPath);
   } catch (e: any) {
     log('error', 'backup:restore-failed', { id, error: e?.message });
     return rollback(snapshot, prevMaintenance);

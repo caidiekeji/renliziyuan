@@ -120,9 +120,9 @@ function JobGridSkeleton({ count }: { count: number }) {
               onChange={(e) => setKeyword(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && search()}
               placeholder="搜索职位 / 关键词…"
-              className="h-9 flex-1 bg-transparent text-sm outline-none"
+              className="h-11 flex-1 bg-transparent text-sm outline-none"
             />
-            <button onClick={search} className="h-9 rounded-full bg-primary px-5 text-sm font-medium text-white hover:bg-primary-hover">
+            <button onClick={search} className="h-11 rounded-full bg-primary px-5 text-sm font-medium text-white hover:bg-primary-hover">
               搜索
             </button>
           </div>

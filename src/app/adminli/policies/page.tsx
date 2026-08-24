@@ -165,8 +165,8 @@ function PoliciesContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="条款协议">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-lg font-bold text-text">条款协议管理</h1>
+      <div className="mb-5 flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-text">条款协议管理</h1>
         <Button size="sm" onClick={() => openCreate()}>
           新建条款
         </Button>

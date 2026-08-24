@@ -11,7 +11,7 @@ export const COMPANY_NAV: NavItem[] = [
   { href: '/company', label: '工作台', icon: 'home' },
   { href: '/company/jobs', label: '职位管理', icon: 'job' },
   { href: '/company/jobs/new', label: '发布职位', icon: 'send' },
-  { href: '/company/messages', label: '消息', icon: 'chat' },
+  { href: '/company/messages', label: '消息', icon: 'chat', badge: 'unread' },
   { href: '/company/reviews', label: '评价', icon: 'star' },
   { href: '/company/hourly-jobs', label: '小时工管理', icon: 'clock' },
   { href: '/company/boosts', label: '竞价置顶', icon: 'chart' },
@@ -19,6 +19,14 @@ export const COMPANY_NAV: NavItem[] = [
   { href: '/company/profile', label: '企业资料', icon: 'building' },
   { href: '/company/members', label: '成员管理', icon: 'users' },
   { href: '/company/billing', label: '会员与账单', icon: 'card' },
+];
+
+/** 企业区移动底部 Tab：工作台/发布职位/消息/企业中心，覆盖企业核心高频操作 */
+export const COMPANY_MOBILE_TABS: NavItem[] = [
+  { href: '/company', label: '工作台', icon: 'home', match: '/company' },
+  { href: '/company/jobs', label: '发布职位', icon: 'send', match: '/company/jobs' },
+  { href: '/company/messages', label: '消息', icon: 'chat', match: '/company/messages', badge: 'unread' },
+  { href: '/company/profile', label: '企业中心', icon: 'user', match: '/company/profile' },
 ];
 
 /** 企业区布局：左侧导航 + 顶部显示当前企业名（读 /api/companies/me 按 companyId 匹配） */
@@ -29,6 +37,7 @@ export function CompanyShell({ children }: { children: React.ReactNode }) {
       nav={COMPANY_NAV}
       title={current?.company.name || '企业中心'}
       sub={current ? COMPANY_ROLE_LABEL[current.role] || current.role : '请先选择企业'}
+      mobileTabs={COMPANY_MOBILE_TABS}
     >
       {children}
     </DashboardShell>

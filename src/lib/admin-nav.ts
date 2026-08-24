@@ -11,6 +11,7 @@ export const ADMIN_NAV: NavItem[] = [
   { href: '/adminli/jobs', label: '职位', icon: 'job' },
   { href: '/adminli/messages', label: '消息', icon: 'chat' },
   { href: '/adminli/reviews', label: '评价', icon: 'star' },
+  { href: '/adminli/rating-config', label: '评价算法', icon: 'settings' },
   { href: '/adminli/billing', label: '计费', icon: 'card' },
   { href: '/adminli/boosts', label: '竞价置顶', icon: 'chart' },
   { href: '/adminli/hourly-jobs', label: '小时工', icon: 'clock' },

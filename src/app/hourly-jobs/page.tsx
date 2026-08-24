@@ -89,23 +89,26 @@ function HourlyJobsContent() {
     <div className="min-h-screen bg-bg">
       <PublicHeader />
       <div className="mx-auto max-w-6xl px-4 py-6">
-        <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-          <h1 className="text-xl font-bold text-text">小时工</h1>
-          <div className="flex items-center gap-2">
-            <Select value={city} onChange={(e) => setParam('city', e.target.value)} className="w-32">
-              <option value="">全部城市</option>
-              {HOT_CITIES.map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </Select>
-            <Select value={sort} onChange={(e) => setParam('sort', e.target.value)} className="w-32">
-              <option value="latest">最新发布</option>
-              <option value="hot">最热</option>
-              <option value="salary_desc">时薪从高到低</option>
-              <option value="salary_asc">时薪从低到高</option>
-            </Select>
+        {/* 筛选栏：移动端纵向堆叠，桌面端横向排列 */}
+        <div className="mb-5">
+          <h1 className="mb-3 text-xl font-semibold text-text">小时工</h1>
+          <div className="card p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Select value={city} onChange={(e) => setParam('city', e.target.value)} className="w-full sm:w-44">
+                <option value="">全部城市</option>
+                {HOT_CITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </Select>
+              <Select value={sort} onChange={(e) => setParam('sort', e.target.value)} className="w-full sm:w-44">
+                <option value="latest">最新发布</option>
+                <option value="hot">最热</option>
+                <option value="salary_desc">时薪从高到低</option>
+                <option value="salary_asc">时薪从低到高</option>
+              </Select>
+            </div>
           </div>
         </div>
 

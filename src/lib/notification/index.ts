@@ -32,13 +32,19 @@ export async function notifyUser(p: NotifyPayload) {
   }
 }
 
-/** 读取未读数 */
+/** 读取未读数（Redis 优先，降级查库） */
 export async function getUnreadCount(userId: string): Promise<number> {
   try {
     const r = await ensureRedis();
     return Number((await r.get(`unread:${userId}`)) || 0);
   } catch {
-    return 0;
+    // Redis 不可用时从数据库统计
+    try {
+      const { prisma } = await import('@/lib/db/prisma');
+      return await prisma.notification.count({ where: { user_id: userId, read_at: null } });
+    } catch {
+      return 0;
+    }
   }
 }
 

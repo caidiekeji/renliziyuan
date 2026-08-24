@@ -34,7 +34,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const data: any = {};
   if (body.verify_status && ['PENDING', 'VERIFIED', 'REJECTED'].includes(body.verify_status)) data.verify_status = body.verify_status;
   const editable = ['name', 'size', 'location', 'contact_phone', 'website', 'description', 'industry_id', 'logo'];
-  for (const k of editable) if (body[k] !== undefined) data[k] = body[k];
+  for (const k of editable) {
+    if (body[k] === undefined) continue;
+    const v = body[k];
+    // 字段值校验：长度上限 + 联系电话/网址格式
+    if (k === 'name' && (typeof v !== 'string' || !v.trim() || v.length > 100)) return fail('VALIDATION_ERROR', '企业名称不合法');
+    if (k === 'contact_phone' && v !== null && typeof v === 'string' && v && !/^1[3-9]\d{9}$/.test(v)) return fail('VALIDATION_ERROR', '联系电话格式不正确');
+    if (k === 'website' && v !== null && typeof v === 'string' && v && !/^https?:\/\/.+/i.test(v)) return fail('VALIDATION_ERROR', '网址格式不正确');
+    if (typeof v === 'string' && v.length > 2000) return fail('VALIDATION_ERROR', `${k} 内容过长`);
+    data[k] = v;
+  }
 
   const updated = await prisma.company.update({ where: { id }, data });
   await auditLog({ adminId: auth.admin.id, action: 'UPDATE_COMPANY', targetType: 'COMPANY', targetId: id, detail: body, ip: getClientIp(req) });

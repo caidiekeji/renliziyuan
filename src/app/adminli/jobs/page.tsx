@@ -135,7 +135,7 @@ function JobsContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="职位管理">
-      <h1 className="mb-4 text-lg font-bold text-text">职位管理（{total}）</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">职位管理（{total}）</h1>
 
       <Card className="mb-4 p-4">
         <div className="flex flex-wrap items-end gap-3">
@@ -180,15 +180,15 @@ function JobsContent() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-left text-sm">
               <thead>
-                <tr className="border-b border-border text-xs text-text-secondary">
-                  <th className="px-3 py-2 font-medium">职位标题</th>
-                  <th className="px-3 py-2 font-medium">企业</th>
-                  <th className="px-3 py-2 font-medium">城市</th>
-                  <th className="px-3 py-2 font-medium">薪资</th>
-                  <th className="px-3 py-2 font-medium">状态</th>
-                  <th className="px-3 py-2 font-medium">审核</th>
-                  <th className="px-3 py-2 font-medium">浏览</th>
-                  <th className="px-3 py-2 font-medium">操作</th>
+                <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
+                  <th className="px-3 py-3 font-medium">职位标题</th>
+                  <th className="px-3 py-3 font-medium">企业</th>
+                  <th className="px-3 py-3 font-medium">城市</th>
+                  <th className="px-3 py-3 font-medium">薪资</th>
+                  <th className="px-3 py-3 font-medium">状态</th>
+                  <th className="px-3 py-3 font-medium">审核</th>
+                  <th className="px-3 py-3 font-medium">浏览</th>
+                  <th className="px-3 py-3 font-medium">操作</th>
                 </tr>
               </thead>
               <tbody>

@@ -156,7 +156,7 @@ function ReviewsContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="评价管理">
-      <h1 className="mb-4 text-lg font-bold text-text">评价管理（{total}）</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">评价管理（{total}）</h1>
 
       <Card className="mb-4 p-4">
         <div className="flex flex-wrap items-end gap-3">
@@ -164,7 +164,7 @@ function ReviewsContent() {
             <Select label="回复状态" options={REPLY_STATUS_OPTIONS} value={replyInput} onChange={(e) => setReplyInput(e.target.value)} />
           </div>
           <div className="flex gap-2">
-            <Button onClick={applyFilter}>筛选</Button>
+            <Button onClick={applyFilter}>搜索</Button>
             <Button
               variant="ghost"
               onClick={() => {
@@ -187,15 +187,15 @@ function ReviewsContent() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-left text-sm">
               <thead>
-                <tr className="border-b border-border text-xs text-text-secondary">
-                  <th className="px-3 py-2 font-medium">评价人</th>
-                  <th className="px-3 py-2 font-medium">对象</th>
-                  <th className="px-3 py-2 font-medium">评分</th>
-                  <th className="px-3 py-2 font-medium">内容</th>
-                  <th className="px-3 py-2 font-medium">回复</th>
-                  <th className="px-3 py-2 font-medium">回复状态</th>
-                  <th className="px-3 py-2 font-medium">时间</th>
-                  <th className="px-3 py-2 font-medium">操作</th>
+                <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
+                  <th className="px-3 py-3 font-medium">评价人</th>
+                  <th className="px-3 py-3 font-medium">对象</th>
+                  <th className="px-3 py-3 font-medium">评分</th>
+                  <th className="px-3 py-3 font-medium">内容</th>
+                  <th className="px-3 py-3 font-medium">回复</th>
+                  <th className="px-3 py-3 font-medium">回复状态</th>
+                  <th className="px-3 py-3 font-medium">时间</th>
+                  <th className="px-3 py-3 font-medium">操作</th>
                 </tr>
               </thead>
               <tbody>

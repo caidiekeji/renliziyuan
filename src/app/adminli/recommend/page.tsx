@@ -124,8 +124,8 @@ function RecommendContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="推荐运营">
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-lg font-bold text-text">推荐运营</h1>
+      <div className="mb-5 flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-text">推荐运营</h1>
         <Button onClick={save} loading={saving}>
           保存配置
         </Button>

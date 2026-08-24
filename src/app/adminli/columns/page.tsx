@@ -166,8 +166,8 @@ function ColumnsContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="栏目管理">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-lg font-bold text-text">栏目管理</h1>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-2">
+        <h1 className="text-xl font-semibold text-text">栏目管理</h1>
         <Button size="sm" onClick={openCreate}>
           新增栏目
         </Button>
@@ -175,7 +175,7 @@ function ColumnsContent() {
 
       <div className="space-y-4">
         {/* Logo */}
-        <div className="card p-4">
+        <div className="card p-5">
           <p className="mb-1 text-sm font-semibold text-text">网站 Logo</p>
           <p className="mb-3 text-xs text-text-secondary">用于前台页头与后台侧栏品牌标识，未设置时自动回退为站点名称首字。</p>
           <div className="flex flex-wrap items-center gap-4">
@@ -211,12 +211,12 @@ function ColumnsContent() {
             <div className="overflow-x-auto">
               <table className="w-full min-w-[640px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-border text-xs text-text-secondary">
-                    <th className="px-3 py-2 font-medium">栏目名称</th>
-                    <th className="px-3 py-2 font-medium">链接</th>
-                    <th className="px-3 py-2 font-medium">排序</th>
-                    <th className="px-3 py-2 font-medium">状态</th>
-                    <th className="px-3 py-2 font-medium">操作</th>
+                  <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
+                    <th className="px-3 py-3 font-medium">栏目名称</th>
+                    <th className="px-3 py-3 font-medium">链接</th>
+                    <th className="px-3 py-3 font-medium">排序</th>
+                    <th className="px-3 py-3 font-medium">状态</th>
+                    <th className="px-3 py-3 font-medium">操作</th>
                   </tr>
                 </thead>
                 <tbody>

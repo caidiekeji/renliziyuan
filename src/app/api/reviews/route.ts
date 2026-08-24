@@ -87,9 +87,10 @@ export async function POST(req: NextRequest) {
       });
       if (!review) return fail('ALREADY_REVIEWED', '您已评价过该报名', 409);
       return created(review);
-    } catch (e) {
+    } catch (e: any) {
       if (e instanceof ReviewConflict) return fail('ALREADY_REVIEWED', e.message, 409);
-      log('error', 'review:hourly-create-failed', { error: (e as Error)?.message });
+      if (e?.code === 'P2002') return fail('ALREADY_REVIEWED', '您已评价过该报名', 409);
+      log('error', 'review:hourly-create-failed', { error: e?.message });
       return handleError(e);
     }
   }
@@ -142,9 +143,10 @@ export async function POST(req: NextRequest) {
     });
     if (!review) return fail('ALREADY_REVIEWED', '该会话您已评价过', 409);
     return created(review);
-  } catch (e) {
+  } catch (e: any) {
     if (e instanceof ReviewConflict) return fail('ALREADY_REVIEWED', e.message, 409);
-    log('error', 'review:create-failed', { error: (e as Error)?.message });
+    if (e?.code === 'P2002') return fail('ALREADY_REVIEWED', '该会话您已评价过', 409);
+    log('error', 'review:create-failed', { error: e?.message });
     return handleError(e);
   }
 }

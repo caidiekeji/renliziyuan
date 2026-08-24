@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from './Button';
 
 interface Props {
@@ -11,15 +11,42 @@ interface Props {
 }
 
 export function Modal({ open, title, children, onClose, footer, width = 'max-w-lg' }: Props) {
-  if (!open) return null;
+  const [closing, setClosing] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout>>(null);
+
+  const handleClose = useCallback(() => {
+    setClosing(true);
+    timerRef.current = setTimeout(() => {
+      setClosing(false);
+      onClose();
+    }, 200);
+  }, [onClose]);
+
+  useEffect(() => {
+    return () => { if (timerRef.current) clearTimeout(timerRef.current); };
+  }, []);
+
+  // Escape 键关闭
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose(); };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [open, handleClose]);
+
+  if (!open && !closing) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center">
-      <div className="absolute inset-0 bg-black/40" onClick={onClose} />
-      <div className={`relative w-full ${width} max-h-[90vh] overflow-y-auto rounded-t-2xl bg-white sm:rounded-2xl`}>
+      <div
+        className={`absolute inset-0 bg-black/40 ${closing ? 'modal-overlay-closing' : 'modal-overlay'}`}
+        onClick={handleClose}
+      />
+      <div className={`relative w-full ${width} max-h-[90vh] overflow-y-auto rounded-xl bg-white shadow-modal ${closing ? 'modal-content-closing' : 'modal-content'}`}>
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <h3 className="text-base font-semibold text-text">{title}</h3>
-          <button onClick={onClose} className="text-text-secondary hover:text-text" aria-label="关闭">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <button onClick={handleClose} className="flex h-8 w-8 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-bg-subtle hover:text-text" aria-label="关闭">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M18 6 6 18M6 6l12 12" />
             </svg>
           </button>

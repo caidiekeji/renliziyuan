@@ -86,18 +86,18 @@ export default function AdminDashboardPage() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="数据概览">
-      <h1 className="mb-4 text-lg font-bold text-text">数据概览</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">数据概览</h1>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.label} className="card p-4">
-            <p className="text-xs text-text-secondary">{s.label}</p>
-            <p className={`mt-1 text-xl font-bold sm:text-2xl ${s.tone}`}>{s.value}</p>
+          <div key={s.label} className="card p-5">
+            <p className="text-sm text-text-secondary">{s.label}</p>
+            <p className={`mt-1 text-[28px] font-bold leading-tight ${s.tone}`}>{s.value}</p>
           </div>
         ))}
       </div>
 
-      <h2 className="mb-3 mt-6 text-base font-bold text-text">近 7 日趋势</h2>
+      <h2 className="mb-3 mt-6 text-base font-semibold text-text">近 7 日趋势</h2>
       <Card>
         {loading ? (
           <PageLoading />
@@ -107,14 +107,14 @@ export default function AdminDashboardPage() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
-                <tr className="border-b border-border text-xs text-text-secondary">
-                  <th className="px-3 py-2 font-medium">日期</th>
-                  <th className="px-3 py-2 font-medium">新增用户</th>
-                  <th className="px-3 py-2 font-medium">新增企业</th>
-                  <th className="px-3 py-2 font-medium">新增职位</th>
-                  <th className="px-3 py-2 font-medium">新增会话</th>
-                  <th className="px-3 py-2 font-medium">新增评价</th>
-                  <th className="px-3 py-2 font-medium">成交金额</th>
+                <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
+                  <th className="px-3 py-3 font-medium">日期</th>
+                  <th className="px-3 py-3 font-medium">新增用户</th>
+                  <th className="px-3 py-3 font-medium">新增企业</th>
+                  <th className="px-3 py-3 font-medium">新增职位</th>
+                  <th className="px-3 py-3 font-medium">新增会话</th>
+                  <th className="px-3 py-3 font-medium">新增评价</th>
+                  <th className="px-3 py-3 font-medium">成交金额</th>
                 </tr>
               </thead>
               <tbody>

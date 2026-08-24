@@ -8,6 +8,7 @@ import { api, qs } from '@/lib/api';
 import { PageLoading } from '@/components/ui/Spinner';
 import { Pagination } from '@/components/ui/Pagination';
 import { Empty } from '@/components/ui/Empty';
+import { Button } from '@/components/ui/Button';
 import { Select } from '@/components/ui/Select';
 import { Input } from '@/components/ui/Input';
 import { IndustrySelect } from '@/components/ui/IndustrySelect';
@@ -32,6 +33,7 @@ function JobsContent() {
   const pageSize = 20;
 
   const [kw, setKw] = useState(keyword);
+  const [filterOpen, setFilterOpen] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -78,58 +80,110 @@ function JobsContent() {
       <div className="mx-auto max-w-6xl px-4 py-6">
         {/* 筛选栏 */}
         <div className="card mb-5 p-4">
-          <div className="grid gap-3 md:grid-cols-3">
-            <Input placeholder="关键词（职位/描述）" value={kw} onChange={(e) => setKw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} />
-            <Select
-              value={city}
-              onChange={(e) => setParam('city', e.target.value)}
-            >
-              <option value="">全部城市</option>
-              {['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京', '西安', '苏州'].map((c) => (
-                <option key={c} value={c}>
-                  {c}
-                </option>
-              ))}
-            </Select>
-            <IndustrySelect value={industryId || null} onChange={(v) => setParam('industry_id', v || '')} />
+          {/* 移动端：关键词 + 筛选开关 */}
+          <div className="flex gap-2 md:hidden">
+            <Input placeholder="关键词（职位/描述）" value={kw} onChange={(e) => setKw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} className="flex-1" />
+            <Button variant="secondary" onClick={() => setFilterOpen((v) => !v)}>
+              {filterOpen ? '收起' : '筛选'}
+            </Button>
           </div>
-          <div className="mt-3 grid gap-3 md:grid-cols-4">
-            <Select value={jobType} onChange={(e) => setParam('job_type', e.target.value)}>
-              <option value="">工作类型</option>
-              {Object.entries(JOB_TYPE_LABEL).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v}
-                </option>
-              ))}
-            </Select>
-            <Select value={experience} onChange={(e) => setParam('experience', e.target.value)}>
-              <option value="">经验要求</option>
-              {Object.entries(EXPERIENCE_LABEL).map(([k, v]) => (
-                <option key={k} value={k}>
-                  {v}
-                </option>
-              ))}
-            </Select>
-            <Select value={salaryMin} onChange={(e) => setParam('salary_min', e.target.value)}>
-              <option value="">最低薪资</option>
-              {['5', '10', '15', '20', '30', '50'].map((v) => (
-                <option key={v} value={v}>
-                  {v}K 以上
-                </option>
-              ))}
-            </Select>
-            <Select value={sort} onChange={(e) => setParam('sort', e.target.value)}>
-              <option value="latest">最新发布</option>
-              <option value="hot">最热</option>
-              <option value="salary_desc">薪资从高到低</option>
-              <option value="salary_asc">薪资从低到高</option>
-            </Select>
+
+          {/* 移动端展开的筛选网格 */}
+          {filterOpen && (
+            <div className="mt-3 grid grid-cols-2 gap-3 md:hidden">
+              <Select value={city} onChange={(e) => setParam('city', e.target.value)}>
+                <option value="">全部城市</option>
+                {['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京', '西安', '苏州'].map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </Select>
+              <IndustrySelect value={industryId || null} onChange={(v) => setParam('industry_id', v || '')} />
+              <Select value={jobType} onChange={(e) => setParam('job_type', e.target.value)}>
+                <option value="">工作类型</option>
+                {Object.entries(JOB_TYPE_LABEL).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </Select>
+              <Select value={experience} onChange={(e) => setParam('experience', e.target.value)}>
+                <option value="">经验要求</option>
+                {Object.entries(EXPERIENCE_LABEL).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </Select>
+              <Select value={salaryMin} onChange={(e) => setParam('salary_min', e.target.value)}>
+                <option value="">最低薪资</option>
+                {['5', '10', '15', '20', '30', '50'].map((v) => (
+                  <option key={v} value={v}>
+                    {v}K 以上
+                  </option>
+                ))}
+              </Select>
+              <Select value={sort} onChange={(e) => setParam('sort', e.target.value)}>
+                <option value="latest">最新发布</option>
+                <option value="hot">最热</option>
+                <option value="salary_desc">薪资从高到低</option>
+                <option value="salary_asc">薪资从低到高</option>
+              </Select>
+            </div>
+          )}
+
+          {/* 桌面筛选（md+ 始终展开） */}
+          <div className="hidden md:block">
+            <div className="grid gap-3 md:grid-cols-3">
+              <Input placeholder="关键词（职位/描述）" value={kw} onChange={(e) => setKw(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && doSearch()} />
+              <Select value={city} onChange={(e) => setParam('city', e.target.value)}>
+                <option value="">全部城市</option>
+                {['北京', '上海', '广州', '深圳', '杭州', '成都', '武汉', '南京', '西安', '苏州'].map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </Select>
+              <IndustrySelect value={industryId || null} onChange={(v) => setParam('industry_id', v || '')} />
+            </div>
+            <div className="mt-3 grid gap-3 md:grid-cols-4">
+              <Select value={jobType} onChange={(e) => setParam('job_type', e.target.value)}>
+                <option value="">工作类型</option>
+                {Object.entries(JOB_TYPE_LABEL).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </Select>
+              <Select value={experience} onChange={(e) => setParam('experience', e.target.value)}>
+                <option value="">经验要求</option>
+                {Object.entries(EXPERIENCE_LABEL).map(([k, v]) => (
+                  <option key={k} value={k}>
+                    {v}
+                  </option>
+                ))}
+              </Select>
+              <Select value={salaryMin} onChange={(e) => setParam('salary_min', e.target.value)}>
+                <option value="">最低薪资</option>
+                {['5', '10', '15', '20', '30', '50'].map((v) => (
+                  <option key={v} value={v}>
+                    {v}K 以上
+                  </option>
+                ))}
+              </Select>
+              <Select value={sort} onChange={(e) => setParam('sort', e.target.value)}>
+                <option value="latest">最新发布</option>
+                <option value="hot">最热</option>
+                <option value="salary_desc">薪资从高到低</option>
+                <option value="salary_asc">薪资从低到高</option>
+              </Select>
+            </div>
           </div>
+
           <div className="mt-3 flex items-center justify-between">
             <span className="text-xs text-text-secondary">共 {total} 个职位</span>
-            <button onClick={doSearch} className="rounded-lg bg-primary px-4 py-1.5 text-sm font-medium text-white hover:bg-primary-hover">
-              搜索
-            </button>
+            <Button onClick={doSearch}>搜索</Button>
           </div>
         </div>
 

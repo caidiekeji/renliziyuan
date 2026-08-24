@@ -4,7 +4,6 @@ import { getUserFromRequest } from '@/lib/auth/session';
 import { prisma } from '@/lib/db/prisma';
 import { updateProfileSchema } from '@/lib/validators/zod';
 import { clearSessionCookies } from '@/lib/auth/session';
-import { getUnreadCount } from '@/lib/notification';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,13 +11,24 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const user = await getUserFromRequest();
   if (!user) return fail('UNAUTHORIZED', '未登录', 401);
-  const [companies, unread] = await Promise.all([
-    prisma.companyMember.findMany({
-      where: { user_id: user.id, status: 'ACTIVE' },
-      include: { company: { select: { id: true, name: true, logo: true, verify_status: true } } },
-    }),
-    getUnreadCount(user.id),
-  ]);
+  const companyMembers = await prisma.companyMember.findMany({
+    where: { user_id: user.id, status: 'ACTIVE' },
+    include: { company: { select: { id: true, name: true, logo: true, verify_status: true } } },
+  });
+  const companyIds = companyMembers.map((c) => c.company.id);
+  // 聊天未读：收到的、未读的消息（排除自己发的）
+  const chatUnread = await prisma.message.count({
+    where: {
+      read_at: null,
+      sender_id: { not: user.id },
+      conversation: {
+        OR: [
+          { candidate_id: user.id },
+          companyIds.length > 0 ? { company_id: { in: companyIds } } : undefined,
+        ].filter(Boolean) as any,
+      },
+    },
+  });
   return ok({
     id: user.id,
     phone: user.phone,
@@ -31,8 +41,8 @@ export async function GET() {
     skills: user.skills,
     status: user.status,
     created_at: user.created_at,
-    companies: companies.map((c) => ({ ...c.company, role: c.role })),
-    unread,
+    companies: companyMembers.map((c) => ({ ...c.company, role: c.role })),
+    unread: chatUnread,
   });
 }
 
@@ -50,16 +60,29 @@ export async function PUT(req: NextRequest) {
   }
 }
 
-/** 注销账号（软删除 + 进回收池 + 全端登出） */
+/** 注销账号（软删除 + 敏感字段脱敏 + 进回收池 + 全端登出） */
 export async function DELETE() {
   const user = await getUserFromRequest();
   if (!user) return fail('UNAUTHORIZED', '未登录', 401);
+  const phone = user.phone;
   await prisma.$transaction([
     prisma.user.update({
       where: { id: user.id },
-      data: { status: 'DELETED', deleted_at: new Date(), refresh_token_version: { increment: 1 } },
+      data: {
+        status: 'DELETED',
+        deleted_at: new Date(),
+        refresh_token_version: { increment: 1 },
+        // 敏感字段脱敏（设计方案 §4.2）：姓名/手机号/邮箱/头像/简介/技能全部清空
+        name: '已注销用户',
+        phone: null,
+        email: null,
+        avatar: null,
+        bio: null,
+        skills: [],
+      },
     }),
-    prisma.phoneReleasePool.create({ data: { phone: user.phone!, old_user_id: user.id } }),
+    // 手机号进回收池（90 天冷却期内禁止复用）；无手机号则跳过
+    ...(phone ? [prisma.phoneReleasePool.create({ data: { phone, old_user_id: user.id } })] : []),
     prisma.seekerPost.updateMany({ where: { user_id: user.id, status: 'OPEN' }, data: { status: 'CLOSED', closed_reason: 'USER_DELETED' } }),
   ]);
   const res = ok({ success: true });

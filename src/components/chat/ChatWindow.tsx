@@ -9,6 +9,7 @@ import { formatDateTime } from '@/lib/utils';
 import { Button } from '@/components/ui/Button';
 import { PageLoading } from '@/components/ui/Spinner';
 import { useToast } from '@/components/ui/Toast';
+import { ReviewForm } from '@/components/review/ReviewForm';
 import type { ConversationItem } from '@/components/chat/ConversationList';
 
 interface ChatMessage {
@@ -51,6 +52,10 @@ export function ChatWindow({
   const [counterpart, setCounterpart] = useState<Counterpart>({
     name: viewAs === 'candidate' ? '企业' : '求职者',
   });
+  const [showReview, setShowReview] = useState(false);
+  const [reviewed, setReviewed] = useState(false);
+  const [closed, setClosed] = useState(false);
+  const isCandidate = user?.role === 'CANDIDATE' || user?.role === 'SEEKER';
   const socketRef = useRef<Socket | null>(null);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const cursorRef = useRef<string | null>(null);
@@ -62,25 +67,35 @@ export function ChatWindow({
     if (el) el.scrollTop = el.scrollHeight;
   };
 
-  // 对方信息（会话列表接口不含单会话详情，从列表匹配）
+  // 对方信息（单会话详情接口）
   useEffect(() => {
-    api.get<ConversationItem[]>('/api/conversations' + qs({ pageSize: 50 })).then((r) => {
+    api.get<ConversationItem>(`/api/conversations/${conversationId}`).then((r) => {
       if (!r.ok) return;
-      const found = r.data.find((c) => c.id === conversationId);
-      if (found) {
-        setCounterpart({
-          name: viewAs === 'candidate' ? found.company?.name || '企业' : found.candidate?.name || '求职者',
-          avatar: viewAs === 'candidate' ? found.company?.logo : found.candidate?.avatar,
-          jobTitle: found.job?.title,
-        });
-      }
+      const found = r.data;
+      setCounterpart({
+        name: viewAs === 'candidate' ? found.company?.name || '企业' : found.candidate?.name || '求职者',
+        avatar: viewAs === 'candidate' ? found.company?.logo : found.candidate?.avatar,
+        jobTitle: found.job?.title,
+      });
+      setClosed(Boolean(found.closed_at));
     });
   }, [conversationId, viewAs]);
+
+  // 检查是否已评价过该会话
+  useEffect(() => {
+    if (!user) return;
+    api.get<{ total: number }>(`/api/me/reviews?as_reviewer=1&conversation_id=${conversationId}`).then((r) => {
+      if (r.ok && r.data.total > 0) setReviewed(true);
+    });
+  }, [conversationId, user]);
 
   // 历史消息 + 实时 socket
   useEffect(() => {
     let disposed = false;
     let socket: Socket | null = null;
+
+    // 标记当前活跃对话（供 AuthContext 判断是否递增未读）
+    (window as any).__activeConversationId = conversationId;
 
     const loadHistory = async () => {
       const r = await api.get<ChatMessage[]>(
@@ -106,12 +121,23 @@ export function ChatWindow({
       });
       socket.on('chat:message', (msg: ChatMessage) => {
         setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, msg]));
+        // 对方发来的新消息：通知 AuthContext 递增未读数（仅非当前会话时）
+        if (msg.sender_id !== myId) {
+          window.dispatchEvent(new CustomEvent('chat:unread-inc', { detail: { conversationId: msg.conversation_id } }));
+        }
         const el = scrollRef.current;
         if (el && el.scrollHeight - el.scrollTop - el.clientHeight < 80) requestAnimationFrame(scrollToBottom);
       });
       // 管理员软删消息：实时移除
       socket.on('chat:message-deleted', ({ messageId }: { messageId: string }) => {
         setMessages((prev) => prev.filter((m) => m.id !== messageId));
+      });
+      // 对方已读：实时更新 read_at
+      socket.on('chat:read', ({ messageIds }: { messageIds: string[] }) => {
+        const now = new Date().toISOString();
+        setMessages((prev) => prev.map((m) => messageIds.includes(m.id) && !m.read_at ? { ...m, read_at: now } : m));
+        // 通知侧栏刷新未读状态
+        window.dispatchEvent(new CustomEvent('chat:read', { detail: { messageIds } }));
       });
       // 对方正在输入
       socket.on('chat:typing', ({ userId, isTyping }: { userId: string; isTyping: boolean }) => {
@@ -123,6 +149,13 @@ export function ChatWindow({
         socket?.disconnect();
         socketRef.current = null;
       });
+      // 会话被管理员强制关闭：锁定输入
+      socket.on('chat:closed', ({ conversationId: closedId }: { conversationId: string }) => {
+        if (closedId === conversationId) {
+          setClosed(true);
+          toast('error', '该会话已被管理员关闭');
+        }
+      });
     };
 
     loadHistory();
@@ -130,6 +163,9 @@ export function ChatWindow({
 
     return () => {
       disposed = true;
+      if ((window as any).__activeConversationId === conversationId) {
+        (window as any).__activeConversationId = null;
+      }
       if (socket) {
         socket.emit('chat:read', { conversationId });
         socket.disconnect();
@@ -167,6 +203,10 @@ export function ChatWindow({
   const send = () => {
     const content = draft.trim();
     if (!content) return;
+    if (closed) {
+      toast('error', '该会话已被管理员关闭');
+      return;
+    }
     const socket = socketRef.current;
     if (!socket) {
       toast('error', '连接异常，请刷新重试');
@@ -178,7 +218,7 @@ export function ChatWindow({
         setMessages((prev) => (prev.some((m) => m.id === ack.message.id) ? prev : [...prev, ack.message]));
         requestAnimationFrame(scrollToBottom);
       } else {
-        toast('error', ack?.error === 'RATE_LIMITED' ? '发送太频繁，请稍后再试' : ack?.error === 'CHAT_DISABLED' ? '站内沟通已关闭' : ack?.error === 'MUTED' ? '你已被禁言，暂不能发送消息' : '发送失败，请重试');
+        toast('error', ack?.error === 'RATE_LIMITED' ? '发送太频繁，请稍后再试' : ack?.error === 'CHAT_DISABLED' ? '站内沟通已关闭' : ack?.error === 'MUTED' ? '你已被禁言，暂不能发送消息' : ack?.error === 'CONVERSATION_CLOSED' ? '该会话已被管理员关闭' : '发送失败，请重试');
       }
     });
   };
@@ -209,6 +249,13 @@ export function ChatWindow({
             <p className="truncate text-sm font-semibold text-text">{counterpart.name}</p>
             {counterpart.jobTitle && <p className="truncate text-xs text-text-secondary">{counterpart.jobTitle}</p>}
           </div>
+          <div className="ml-auto shrink-0">
+            {reviewed ? (
+              <span className="text-xs text-text-secondary">已评价</span>
+            ) : messages.length > 0 ? (
+              <Button size="sm" variant="ghost" onClick={() => setShowReview(true)}>写评价</Button>
+            ) : null}
+          </div>
         </header>
 
         {/* 消息流 */}
@@ -220,24 +267,28 @@ export function ChatWindow({
           ) : messages.length === 0 ? (
             <p className="py-12 text-center text-sm text-text-secondary">暂无消息，打个招呼吧</p>
           ) : (
-            messages.map((m) => {
+            (() => {
+              const lastMineId = [...messages].reverse().find((m) => m.sender_id === myId)?.id;
+              return messages.map((m) => {
               const mine = m.sender_id === myId;
+              const showReadStatus = mine && m.id === lastMineId;
               return (
                 <div key={m.id} className={`flex ${mine ? 'justify-end' : 'justify-start'}`}>
                   <div
-                    className={`max-w-[80%] rounded-2xl px-3 py-2 sm:max-w-[65%] ${
-                      mine ? 'rounded-br-md bg-primary-soft' : 'rounded-bl-md border border-border bg-white'
+                    className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 sm:max-w-[65%] ${
+                      mine ? 'rounded-br-md bg-primary text-white' : 'rounded-bl-md border border-border bg-white'
                     }`}
                   >
-                    <p className="whitespace-pre-wrap break-words text-sm text-text">{m.content}</p>
-                    <div className={`mt-0.5 flex items-center gap-1.5 text-[10px] text-text-secondary ${mine ? 'justify-end' : ''}`}>
-                      {mine && <span className={m.read_at ? 'text-accent' : ''}>{m.read_at ? '已读' : '未读'}</span>}
+                    <p className={`whitespace-pre-wrap break-words text-sm ${mine ? 'text-white' : 'text-text'}`}>{m.content}</p>
+                    <div className={`mt-0.5 flex items-center gap-1.5 text-[10px] ${mine ? 'text-white/60 justify-end' : 'text-text-secondary'}`}>
+                      {showReadStatus && <span className={m.read_at ? 'text-accent' : ''}>{m.read_at ? '已读' : '未读'}</span>}
                       <span>{formatDateTime(m.created_at)}</span>
                     </div>
                   </div>
                 </div>
               );
-            })
+              });
+            })()
           )}
           {loadingMore && (
             <div className="flex justify-center py-1">
@@ -248,6 +299,9 @@ export function ChatWindow({
 
         {/* 底部输入 */}
         <footer className="shrink-0 border-t border-border bg-white p-3">
+          {closed ? (
+            <p className="py-2 text-center text-sm text-text-secondary">该会话已被管理员关闭，无法发送消息</p>
+          ) : (
           <div className="flex items-end gap-2">
             <textarea
               value={draft}
@@ -263,15 +317,23 @@ export function ChatWindow({
               }}
               placeholder="输入消息…"
               rows={1}
-              className="max-h-28 flex-1 resize-none rounded-lg border border-border bg-bg-subtle px-3 py-2 text-sm text-text placeholder:text-text-secondary/50 focus:border-text-secondary"
+              className="max-h-28 flex-1 resize-none rounded-lg border border-border bg-bg-subtle px-3 py-2.5 text-sm text-text placeholder:text-text-secondary/50 transition-colors duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
             <Button onClick={send} disabled={!draft.trim()}>
               发送
             </Button>
           </div>
+          )}
           {typing && <p className="mt-1 text-xs text-text-secondary">对方正在输入…</p>}
         </footer>
       </div>
+      <ReviewForm
+        open={showReview}
+        onClose={() => setShowReview(false)}
+        targetType={isCandidate ? 'COMPANY' : 'CANDIDATE'}
+        conversationId={conversationId}
+        onSubmitted={() => setReviewed(true)}
+      />
     </div>
   );
 }

@@ -17,7 +17,51 @@ export function invalidateCache(keys?: string[]) {
   else keys.forEach((k) => cache.delete(k));
 }
 
+/** 构建时（next build）无数据库连接，返回占位默认值，运行时正常读库 */
+function isBuildTime() {
+  return process.env.NEXT_PHASE === 'phase-production-build';
+}
+
+const DEFAULT_SITE_CONFIG = {
+  id: '1',
+  site_name: '人才招聘平台',
+  site_logo: '',
+  maintenance_mode: false,
+  maintenance_msg: '',
+  sms_enabled: true,
+  token_ttl_min: 30,
+  refresh_ttl_days: 7,
+  max_upload_mb: 10,
+  upload_max_mb: 10,
+  upload_allowed_types: 'jpg,jpeg,png,pdf,doc,docx',
+  allowed_upload_types: 'image/jpeg,image/png,image/webp,application/pdf',
+  job_score_max: 10,
+  auto_match_enabled: false,
+  match_threshold: 60,
+  sms_dev_code: '',
+  push_enabled: false,
+  push_provider: '',
+  push_key: '',
+  site_desc: '',
+  site_keywords: '',
+  icp_number: '',
+  contact_email: '',
+  contact_phone: '',
+  contact_address: '',
+  wechat_qr: '',
+  created_at: new Date(),
+  updated_at: new Date(),
+} as any;
+
+const DEFAULT_NAV_MENUS: any[] = [
+  { id: '1', label: '首页', href: '/', sort: 1, active: true, created_at: new Date() },
+  { id: '2', label: '找工作', href: '/jobs', sort: 2, active: true, created_at: new Date() },
+  { id: '3', label: '找人才', href: '/companies', sort: 3, active: true, created_at: new Date() },
+  { id: '4', label: '兼职', href: '/hourly-jobs', sort: 4, active: true, created_at: new Date() },
+];
+
 export async function getSiteConfig() {
+  if (isBuildTime()) return DEFAULT_SITE_CONFIG;
   return cached('site_config', async () => {
     const cfg = await prisma.siteConfig.findUnique({ where: { id: 1 } });
     if (!cfg) throw new Error('site_config 未初始化，请先执行 npx prisma db seed');
@@ -33,6 +77,14 @@ export async function getRecommendationConfig() {
   });
 }
 
+export async function getRatingConfig() {
+  return cached('rating_config', async () => {
+    const cfg = await prisma.ratingConfig.findFirst();
+    if (!cfg) throw new Error('rating_config 未初始化');
+    return cfg;
+  });
+}
+
 export async function getSeoConfig() {
   return cached('seo_config', async () => {
     const cfg = await prisma.seoConfig.findUnique({ where: { id: 1 } });
@@ -43,6 +95,7 @@ export async function getSeoConfig() {
 
 /** 前台首页一级栏目（仅启用项，按 sort 升序） */
 export async function getNavMenus() {
+  if (isBuildTime()) return DEFAULT_NAV_MENUS;
   return cached('nav_menus', async () => {
     return prisma.navMenu.findMany({
       where: { active: true },

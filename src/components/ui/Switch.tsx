@@ -41,12 +41,12 @@ export function Switch({
         {hint && <span className="mt-0.5 block text-xs text-text-secondary">{hint}</span>}
       </span>
       <span
-        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors ${
+        className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] ${
           checked ? 'bg-primary' : 'bg-border'
         }`}
       >
         <span
-          className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
+          className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] ${
             checked ? 'translate-x-[22px]' : 'translate-x-0.5'
           }`}
         />

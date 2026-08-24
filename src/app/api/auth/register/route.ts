@@ -28,9 +28,12 @@ export async function POST(req: NextRequest) {
     if (!codeOk) return fail('INVALID_CODE', '验证码错误或已过期');
   }
 
-  // 回收池检查：注销后 7 天内不可注册
+  // 条款同意必须先于用户创建校验，避免未同意时产生脏数据
+  if (!agree_terms || !agree_privacy) return fail('AGREEMENT_REQUIRED', '必须同意用户协议与隐私政策');
+
+  // 回收池检查：注销后 90 天内不可注册（设计方案 §4.2 冷却期）
   const pool = await prisma.phoneReleasePool.findFirst({ where: { phone } });
-  if (pool) return fail('PHONE_IN_RELEASE_POOL', '该手机号注销后 7 天内不可重新注册');
+  if (pool) return fail('PHONE_IN_RELEASE_POOL', '该手机号注销后 90 天内不可重新注册');
 
   const existing = await prisma.user.findUnique({ where: { phone } });
   if (existing && existing.status !== 'DELETED') return fail('PHONE_EXISTS', '该手机号已注册');
@@ -65,7 +68,24 @@ export async function POST(req: NextRequest) {
         });
       }
     }
-    if (!agree_terms || !agree_privacy) return fail('AGREEMENT_REQUIRED', '必须同意用户协议与隐私政策');
+    // 注册联动：企业主注册→建 company→自动成为 OWNER（设计方案 §注册联动）
+    if (role === 'COMPANY') {
+      const existingMember = await prisma.companyMember.findFirst({ where: { user_id: user.id } });
+      if (!existingMember) {
+        const company = await prisma.$transaction(async (tx) => {
+          const c = await tx.company.create({ data: { owner_id: user.id, name } });
+          await tx.companyMember.create({ data: { company_id: c.id, user_id: user.id, role: 'OWNER', status: 'ACTIVE' } });
+          return c;
+        });
+        const res = ok({ user: publicUser(user), company_id: company.id });
+        const [access, refresh] = await Promise.all([
+          signAccessToken(user.id, user.refresh_token_version, user.role),
+          signRefreshToken(user.id, user.refresh_token_version),
+        ]);
+        setSessionCookies(res, access, refresh);
+        return res;
+      }
+    }
 
     const res = ok({ user: publicUser(user) });
     const [access, refresh] = await Promise.all([

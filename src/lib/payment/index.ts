@@ -24,6 +24,20 @@ export async function isMockMode(channel: PaymentChannel): Promise<boolean> {
   return !cfg || !cfg.active || cfg.sandbox === true;
 }
 
+const CHANNEL_LABEL: Record<string, string> = { ALIPAY: '支付宝', WECHAT: '微信支付' };
+
+/**
+ * 可用支付渠道：数据库已启用（active=true）的真实渠道。
+ * 排除 STRIPE（模拟支付占位渠道），避免用户界面出现模拟支付。
+ */
+export async function getAvailableChannels(): Promise<{ channel: PaymentChannel; label: string }[]> {
+  const configs = await prisma.paymentConfig.findMany({
+    where: { active: true, channel: { not: 'STRIPE' } },
+    select: { channel: true },
+  });
+  return configs.map((c) => ({ channel: c.channel, label: CHANNEL_LABEL[c.channel] || c.channel }));
+}
+
 export function genOrderNo(): string {
   return `JB${Date.now()}${nanoid(8).toUpperCase()}`;
 }
@@ -45,6 +59,10 @@ export async function createPayment(params: {
     await activateSubscription(companyId, plan.id);
     return { orderNo: null, payUrl: null, amount: 0 };
   }
+
+  // 渠道可用性校验：仅允许数据库已启用的真实渠道（防绕过前端直接以 STRIPE 下单）
+  const available = await getAvailableChannels();
+  if (!available.some((c) => c.channel === channel)) throw new Error('支付渠道不可用或未配置');
 
   const cfg = await getPaymentConfig(channel);
   const orderNo = genOrderNo();
@@ -76,6 +94,9 @@ export async function createPayment(params: {
  */
 export async function createRechargePayment(params: { companyId: string; amount: number; channel: PaymentChannel }) {
   const { companyId, amount, channel } = params;
+  // 渠道可用性校验：仅允许数据库已启用的真实渠道
+  const available = await getAvailableChannels();
+  if (!available.some((c) => c.channel === channel)) throw new Error('支付渠道不可用或未配置');
   const cfg = await getPaymentConfig(channel);
   const orderNo = genOrderNo();
   await prisma.payment.create({

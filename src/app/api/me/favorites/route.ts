@@ -11,10 +11,12 @@ export async function GET(req: NextRequest) {
   if (!user) return fail('UNAUTHORIZED', '未登录', 401);
   const page = Math.max(1, Number(req.nextUrl.searchParams.get('page')) || 1);
   const pageSize = Math.min(50, Math.max(1, Number(req.nextUrl.searchParams.get('pageSize')) || 20));
+  // 只统计/返回未删除职位的收藏，保证 total 与列表一致
+  const where = { user_id: user.id, job: { deleted_at: null } };
   const [total, items] = await Promise.all([
-    prisma.favorite.count({ where: { user_id: user.id } }),
+    prisma.favorite.count({ where }),
     prisma.favorite.findMany({
-      where: { user_id: user.id },
+      where,
       orderBy: { created_at: 'desc' },
       skip: (page - 1) * pageSize,
       take: pageSize,
@@ -23,6 +25,5 @@ export async function GET(req: NextRequest) {
       },
     }),
   ]);
-  const list = items.filter((f) => f.job && !f.job.deleted_at);
-  return ok(list, { total, page, pageSize });
+  return ok(items, { total, page, pageSize });
 }

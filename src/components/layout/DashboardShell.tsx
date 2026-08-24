@@ -17,7 +17,7 @@ export interface NavItem {
 }
 
 /** 线性一致笔触的图标集（内部使用） */
-function Icon({ name }: { name: string }) {
+function Icon({ name, size = 17 }: { name: string; size?: number }) {
   const paths: Record<string, string> = {
     home: 'M3 10.5 12 3l9 7.5M5 9v11h5v-6h4v6h5V9',
     job: 'M21 13.3V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v7.3M21 13.3a2 2 0 0 1-2 1.7h-3l-2 3h-4l-2-3H5a2 2 0 0 1-2-1.7M21 13.3V9M3 13.3V9',
@@ -39,7 +39,7 @@ function Icon({ name }: { name: string }) {
     clock: 'M12 8v4l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
   };
   return (
-    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
       <path d={paths[name] || paths.doc} />
     </svg>
   );
@@ -75,7 +75,7 @@ function SidebarNav({
             href={item.href}
             prefetch={false}
             title={collapsed ? item.label : undefined}
-            className={`flex items-center rounded-lg py-2 text-sm transition-colors duration-150 ${
+            className={`flex items-center rounded-lg py-2.5 text-sm transition-colors duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] ${
               collapsed ? 'justify-center' : 'gap-2.5 px-3'
             } ${
               isActive(item)
@@ -85,13 +85,19 @@ function SidebarNav({
           >
             <Icon name={item.icon || 'doc'} />
             {!collapsed && item.label}
+            {!collapsed && item.badge === 'unread' && (user?.unread || 0) > 0 && (
+              <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-danger px-1.5 text-[10px] font-semibold leading-none text-white">
+                {(user?.unread || 0) > 99 ? '99+' : user?.unread}
+              </span>
+            )}
           </Link>
         ))}
       </nav>
 
+      {/* 侧栏底部：仅用户身份，操作入口统一在顶部栏 */}
       <div className={`mt-6 border-t border-border pt-3 ${collapsed ? 'px-0' : 'px-3'}`}>
         <div
-          className={`mb-1 flex items-center rounded-lg py-1.5 text-xs text-text-secondary ${
+          className={`flex items-center rounded-lg py-1.5 text-xs text-text-secondary ${
             collapsed ? 'justify-center' : 'gap-2 px-3'
           }`}
         >
@@ -100,16 +106,6 @@ function SidebarNav({
           </span>
           {!collapsed && <span className="min-w-0 flex-1 truncate">{user?.name}</span>}
         </div>
-        <Link
-          href="/"
-          title={collapsed ? '返回首页' : undefined}
-          className={`flex items-center rounded-lg py-2 text-sm text-text-secondary transition-colors hover:bg-bg-subtle hover:text-text ${
-            collapsed ? 'justify-center' : 'gap-2.5 px-3'
-          }`}
-        >
-          <Icon name="exit" />
-          {!collapsed && <>返回首页</>}
-        </Link>
       </div>
     </div>
   );
@@ -153,8 +149,8 @@ export function DashboardShell({
     <div className="flex min-h-screen bg-bg-subtle">
       {/* 侧栏（桌面）: 贴左全高、固定于视口、内部独立滚动，可折叠 */}
       <aside
-        className={`hidden shrink-0 flex-col border-r border-border bg-white transition-[width] duration-200 lg:sticky lg:top-0 lg:flex lg:h-screen ${
-          collapsed ? 'w-16' : 'w-64'
+        className={`hidden shrink-0 flex-col border-r border-border bg-white transition-[width] duration-200 ease-[cubic-bezier(0.4,0,0.2,1)] lg:sticky lg:top-0 lg:flex lg:h-screen ${
+          collapsed ? 'w-16' : 'w-60'
         }`}
       >
         <div className={`flex h-16 shrink-0 items-center gap-2 border-b border-border ${collapsed ? 'justify-center px-2' : 'px-3'}`}>
@@ -195,7 +191,7 @@ export function DashboardShell({
       {/* 右侧主区 */}
       <div className="flex min-w-0 flex-1 flex-col">
         {/* 移动端顶部栏 */}
-        <div className="sticky top-0 z-30 flex h-12 items-center justify-between border-b border-border bg-white px-4 lg:hidden">
+        <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border bg-white px-4 lg:hidden">
           {mobileTabs ? (
             <span className="w-6 shrink-0" />
           ) : (
@@ -216,22 +212,16 @@ export function DashboardShell({
         {mobileOpen && (
           <div className="fixed inset-0 z-20 lg:hidden">
             <div className="absolute inset-0 bg-black/30" onClick={() => setMobileOpen(false)} />
-            <div className="absolute left-0 top-0 h-full w-64 bg-white p-3 shadow-xl">
+            <div className="absolute left-0 top-0 h-full w-60 bg-white p-3 shadow-xl">
               <SidebarNav nav={nav} isActive={isActive} title={title} sub={sub} />
             </div>
           </div>
         )}
 
-        {/* 桌面顶部栏：用户操作 */}
+        {/* 桌面顶部栏：仅操作入口（用户身份已在侧栏显示） */}
         <header className="sticky top-0 z-40 hidden h-16 shrink-0 items-center justify-end border-b border-border bg-white px-6 lg:flex">
           <div className="flex items-center gap-4">
             <Link href="/" className="text-xs text-text-secondary transition-colors hover:text-text">返回前台</Link>
-            <span className="flex items-center gap-2 text-sm text-text">
-              <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary-soft font-semibold text-text">
-                {(user?.name || '?').slice(0, 1)}
-              </span>
-              <span className="max-w-28 truncate">{user?.name}</span>
-            </span>
             <button onClick={() => logout()} className="text-xs text-text-secondary transition-colors hover:text-danger">
               退出登录
             </button>
@@ -239,7 +229,7 @@ export function DashboardShell({
         </header>
 
         {/* 内容区 */}
-        <main className={`flex-1 px-5 pt-6 sm:px-8 lg:px-10 ${mobileTabs ? 'pb-24 lg:pb-10' : 'pb-6'}`}>
+        <main className={`flex-1 px-4 pt-5 sm:px-6 lg:px-8 ${mobileTabs ? 'pb-24 lg:pb-10' : 'pb-6'}`}>
           <div className="mx-auto w-full max-w-6xl">{children}</div>
         </main>
 
@@ -262,9 +252,9 @@ export function DashboardShell({
                     }`}
                   >
                     <span className="relative">
-                      <Icon name={t.icon || 'doc'} />
+                      <Icon name={t.icon || 'doc'} size={24} />
                       {t.badge === 'unread' && (user?.unread || 0) > 0 && (
-                        <span className="absolute -right-2.5 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold leading-none text-white">
+                        <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold leading-none text-white">
                           {(user?.unread || 0) > 99 ? '99+' : user?.unread}
                         </span>
                       )}

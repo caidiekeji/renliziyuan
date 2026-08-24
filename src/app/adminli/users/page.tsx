@@ -188,7 +188,7 @@ function UsersContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="用户管理">
-      <h1 className="mb-4 text-lg font-bold text-text">用户管理（{total}）</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">用户管理（{total}）</h1>
 
       <Card className="mb-4 p-4">
         <div className="flex flex-wrap items-end gap-3">
@@ -236,14 +236,14 @@ function UsersContent() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[760px] text-left text-sm">
               <thead>
-                <tr className="border-b border-border text-xs text-text-secondary">
-                  <th className="px-3 py-2 font-medium">姓名</th>
-                  <th className="px-3 py-2 font-medium">手机号</th>
-                  <th className="px-3 py-2 font-medium">角色</th>
-                  <th className="px-3 py-2 font-medium">状态</th>
-                  <th className="px-3 py-2 font-medium">城市</th>
-                  <th className="px-3 py-2 font-medium">注册时间</th>
-                  <th className="px-3 py-2 font-medium">操作</th>
+                <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
+                  <th className="px-3 py-3 font-medium">姓名</th>
+                  <th className="px-3 py-3 font-medium">手机号</th>
+                  <th className="px-3 py-3 font-medium">角色</th>
+                  <th className="px-3 py-3 font-medium">状态</th>
+                  <th className="px-3 py-3 font-medium">城市</th>
+                  <th className="px-3 py-3 font-medium">注册时间</th>
+                  <th className="px-3 py-3 font-medium">操作</th>
                 </tr>
               </thead>
               <tbody>

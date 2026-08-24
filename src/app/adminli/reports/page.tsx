@@ -94,7 +94,7 @@ function ReportsContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="举报中心">
-      <h1 className="mb-4 text-lg font-bold text-text">举报中心（{total}）</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">举报中心（{total}）</h1>
 
       <Card className="mb-4 p-4">
         <div className="flex flex-wrap items-end gap-3">
@@ -102,7 +102,7 @@ function ReportsContent() {
             <Select label="状态" options={STATUS_OPTIONS} value={statusInput} onChange={(e) => setStatusInput(e.target.value)} />
           </div>
           <div className="flex gap-2">
-            <Button onClick={applyFilter}>筛选</Button>
+            <Button onClick={applyFilter}>搜索</Button>
             <Button
               variant="ghost"
               onClick={() => {

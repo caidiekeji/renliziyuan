@@ -112,32 +112,36 @@ function AdminHourlyJobsContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="小时工管理">
+      <h1 className="mb-5 text-xl font-semibold text-text">小时工管理</h1>
       {/* 数据概览 */}
-      <div className="mb-5 grid grid-cols-3 gap-3">
-        <div className="card p-4">
-          <p className="text-xs text-text-secondary">小时工职位</p>
-          <p className="mt-1 text-xl font-bold text-text">{stats?.total_jobs ?? '-'}</p>
+      <div className="mb-5 grid grid-cols-3 gap-5">
+        <div className="card p-5">
+          <p className="text-sm text-text-secondary">小时工职位</p>
+          <p className="mt-1 text-[28px] font-bold leading-tight text-text">{stats?.total_jobs ?? '-'}</p>
         </div>
-        <div className="card p-4">
-          <p className="text-xs text-text-secondary">已报名</p>
-          <p className="mt-1 text-xl font-bold text-text">{stats?.total_applied ?? '-'}</p>
+        <div className="card p-5">
+          <p className="text-sm text-text-secondary">已报名</p>
+          <p className="mt-1 text-[28px] font-bold leading-tight text-text">{stats?.total_applied ?? '-'}</p>
         </div>
-        <div className="card p-4">
-          <p className="text-xs text-text-secondary">已取消</p>
-          <p className="mt-1 text-xl font-bold text-text">{stats?.total_cancelled ?? '-'}</p>
+        <div className="card p-5">
+          <p className="text-sm text-text-secondary">已取消</p>
+          <p className="mt-1 text-[28px] font-bold leading-tight text-text">{stats?.total_cancelled ?? '-'}</p>
         </div>
       </div>
 
       {/* 筛选 */}
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <div className="w-40">
-          <Select value={statusInput} onChange={(e) => setStatusInput(e.target.value)} options={STATUS_OPTIONS} />
+      <Card className="mb-5 p-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <div className="w-40">
+            <Select label="状态" value={statusInput} onChange={(e) => setStatusInput(e.target.value)} options={STATUS_OPTIONS} />
+          </div>
+          <Input label="关键词" placeholder="职位/企业关键词" value={kwInput} onChange={(e) => setKwInput(e.target.value)} className="w-56" />
+          <div className="flex gap-2">
+            <Button onClick={applyFilter}>搜索</Button>
+            <Button variant="ghost" onClick={() => { setStatusInput(''); setKwInput(''); router.replace('/adminli/hourly-jobs'); }}>重置</Button>
+          </div>
         </div>
-        <Input placeholder="职位/企业关键词" value={kwInput} onChange={(e) => setKwInput(e.target.value)} className="w-56" />
-        <Button variant="secondary" onClick={applyFilter}>
-          筛选
-        </Button>
-      </div>
+      </Card>
 
       {loading ? (
         <PageLoading />
@@ -150,32 +154,32 @@ function AdminHourlyJobsContent() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[820px] text-sm">
               <thead>
-                <tr className="border-b border-border text-left text-xs text-text-secondary">
-                  <th className="px-4 py-3 font-medium">职位</th>
-                  <th className="px-4 py-3 font-medium">企业</th>
-                  <th className="px-4 py-3 font-medium">城市</th>
-                  <th className="px-4 py-3 font-medium">时薪</th>
-                  <th className="px-4 py-3 font-medium">报名</th>
-                  <th className="px-4 py-3 font-medium">状态</th>
-                  <th className="px-4 py-3 font-medium">发布时间</th>
-                  <th className="px-4 py-3 font-medium">操作</th>
+                <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
+                  <th className="px-3 py-3 font-medium">职位</th>
+                  <th className="px-3 py-3 font-medium">企业</th>
+                  <th className="px-3 py-3 font-medium">城市</th>
+                  <th className="px-3 py-3 font-medium">时薪</th>
+                  <th className="px-3 py-3 font-medium">报名</th>
+                  <th className="px-3 py-3 font-medium">状态</th>
+                  <th className="px-3 py-3 font-medium">发布时间</th>
+                  <th className="px-3 py-3 font-medium">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((j) => (
-                  <tr key={j.id} className="border-b border-border/60 last:border-0 hover:bg-bg-subtle">
-                    <td className="max-w-48 truncate px-4 py-3 font-medium text-text">{j.title}</td>
-                    <td className="max-w-40 truncate px-4 py-3 text-text-secondary">{j.company.name}</td>
-                    <td className="px-4 py-3 text-text-secondary">{j.city}</td>
-                    <td className="px-4 py-3 text-text">¥{Number(j.hourly_rate ?? 0).toFixed(2)}/时</td>
-                    <td className="px-4 py-3 text-text-secondary">
+                  <tr key={j.id} className="border-b border-border/60 last:border-0 hover:bg-bg-subtle/60">
+                    <td className="max-w-48 truncate px-3 py-2.5 font-medium text-text">{j.title}</td>
+                    <td className="max-w-40 truncate px-3 py-2.5 text-text-secondary">{j.company.name}</td>
+                    <td className="px-3 py-2.5 text-text-secondary">{j.city}</td>
+                    <td className="px-3 py-2.5 text-text">¥{Number(j.hourly_rate ?? 0).toFixed(2)}/时</td>
+                    <td className="px-3 py-2.5 text-text-secondary">
                       {applicantCount(j)}/{j.slots}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2.5">
                       <Badge tone={j.status === 'OPEN' ? 'success' : 'warning'}>{j.status === 'OPEN' ? '在招' : '已下线'}</Badge>
                     </td>
-                    <td className="px-4 py-3 text-xs text-text-secondary">{formatDate(j.created_at)}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2.5 text-xs text-text-secondary">{formatDate(j.created_at)}</td>
+                    <td className="px-3 py-2.5">
                       <Button size="sm" variant="secondary" onClick={() => viewApplicants(j)}>
                         报名记录
                       </Button>
@@ -185,9 +189,11 @@ function AdminHourlyJobsContent() {
               </tbody>
             </table>
           </div>
+          <div className="px-2 pb-2">
+            <Pagination page={page} pageSize={pageSize} total={total} />
+          </div>
         </Card>
       )}
-      <Pagination page={page} pageSize={pageSize} total={total} />
 
       {/* 报名记录 */}
       <Modal open={!!viewJob} title={`报名记录：${viewJob?.title || ''}`} onClose={() => setViewJob(null)} width="max-w-2xl">

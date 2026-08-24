@@ -52,14 +52,38 @@ export async function GET(req: NextRequest) {
     }
   }
 
+  // 评价降权：免费套餐企业评分低的自然排名靠后（置顶/付费不受影响）
+  let ratingPenaltyIds: string[] = [];
+  if (sort === 'latest' || !sort) {
+    try {
+      const { getRatingConfig } = await import('@/lib/config');
+      const rc = await getRatingConfig();
+      // 查出免费套餐企业的低评分职位 ID，这些职位在排序时被标记为降权
+      const lowRated = await prisma.$queryRaw<{ id: string }[]>`
+        SELECT j.id FROM "Job" j
+        JOIN "Company" c ON c.id = j.company_id
+        LEFT JOIN "Subscription" s ON s.company_id = c.id AND s.status = 'ACTIVE'
+        WHERE j.status = 'OPEN' AND j.audit_status = 'APPROVED' AND j.deleted_at IS NULL
+          AND j.is_featured = false
+          AND s.id IS NULL
+          AND c.avg_rating > 0 AND c.avg_rating < ${rc.low_rating_threshold}
+      `;
+      ratingPenaltyIds = lowRated.map((r) => r.id);
+    } catch {
+      // 配置不可用时跳过降权
+    }
+  }
+
   const orderBy: any =
-    sort === 'salary_desc'
-      ? [{ salary_max: 'desc' as const }, { salary_min: 'desc' as const }]
-      : sort === 'salary_asc'
-        ? [{ salary_max: 'asc' as const }]
-        : sort === 'hot'
-          ? [{ views: 'desc' as const }]
-          : [{ created_at: 'desc' as const }];
+    sort === 'rating'
+      ? [{ company: { avg_rating: 'desc' as const } }, { created_at: 'desc' as const }]
+      : sort === 'salary_desc'
+        ? [{ salary_max: 'desc' as const }, { salary_min: 'desc' as const }]
+        : sort === 'salary_asc'
+          ? [{ salary_max: 'asc' as const }]
+          : sort === 'hot'
+            ? [{ views: 'desc' as const }]
+            : [{ created_at: 'desc' as const }];
 
   const [total, items] = await Promise.all([
     prisma.job.count({ where }),
@@ -75,6 +99,13 @@ export async function GET(req: NextRequest) {
       },
     }),
   ]);
+
+  // 评价降权：将低评分免费企业的职位移到列表末尾
+  if (ratingPenaltyIds.length && (sort === 'latest' || !sort)) {
+    const normal = items.filter((j) => !ratingPenaltyIds.includes(j.id));
+    const penalized = items.filter((j) => ratingPenaltyIds.includes(j.id));
+    items.splice(0, items.length, ...normal, ...penalized);
+  }
 
   return ok(items, { total, page, pageSize, boosts });
 }
@@ -107,31 +138,37 @@ export async function POST(req: NextRequest) {
   const canFeature = !!sub?.plan.can_feature;
   if (parsed.data.is_featured && !canFeature) return fail('FEATURE_NOT_ALLOWED', '当前套餐不支持置顶');
 
-  if (sub && sub.plan.job_limit !== 999999) {
-    const openCount = await prisma.job.count({ where: { company_id: companyId, status: 'OPEN', deleted_at: null } });
-    if (openCount >= sub.plan.job_limit) {
-      return fail('JOB_LIMIT_EXCEEDED', `套餐职位上限 ${sub.plan.job_limit} 个，请升级套餐`, 403);
-    }
-  } else if (!sub) {
-    // 无订阅：按免费版 3 个限额
-    const openCount = await prisma.job.count({ where: { company_id: companyId, status: 'OPEN', deleted_at: null } });
-    if (openCount >= 3) return fail('JOB_LIMIT_EXCEEDED', '免费版最多发布 3 个职位，请升级套餐', 403);
-  }
-
+  // 套餐配额校验 + 创建：同一事务 + 企业行锁，防并发发布超卖配额
   try {
-    const job = await prisma.job.create({
-      data: {
-        ...parsed.data,
-        company_id: companyId,
-        is_featured: parsed.data.is_featured && canFeature ? true : false,
-        audit_status: autoApprove ? 'APPROVED' : 'PENDING',
-        status: autoApprove ? 'OPEN' : 'CLOSED',
-        closed_reason: autoApprove ? null : 'AUDIT_REJECTED',
-      },
+    const job = await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "Company" WHERE id = ${companyId}::uuid FOR UPDATE`;
+      const sub = await tx.subscription.findFirst({
+        where: { company_id: companyId, status: 'ACTIVE', end_at: { gt: new Date() } },
+        include: { plan: true },
+      });
+      if (sub && sub.plan.job_limit !== 999999) {
+        const openCount = await tx.job.count({ where: { company_id: companyId, status: 'OPEN', deleted_at: null } });
+        if (openCount >= sub.plan.job_limit) throw new Error('JOB_LIMIT_EXCEEDED');
+      } else if (!sub) {
+        // 无订阅：按免费版 3 个限额
+        const openCount = await tx.job.count({ where: { company_id: companyId, status: 'OPEN', deleted_at: null } });
+        if (openCount >= 3) throw new Error('JOB_LIMIT_EXCEEDED');
+      }
+      return tx.job.create({
+        data: {
+          ...parsed.data,
+          company_id: companyId,
+          is_featured: parsed.data.is_featured && canFeature ? true : false,
+          audit_status: autoApprove ? 'APPROVED' : 'PENDING',
+          status: autoApprove ? 'OPEN' : 'CLOSED',
+          closed_reason: autoApprove ? null : 'AUDIT_REJECTED',
+        },
+      });
     });
     if (!autoApprove) log('info', 'job:pending-audit', { jobId: job.id, companyId });
     return created(job);
-  } catch (e) {
+  } catch (e: any) {
+    if (e?.message === 'JOB_LIMIT_EXCEEDED') return fail('JOB_LIMIT_EXCEEDED', '套餐职位上限已满，请升级套餐', 403);
     return handleError(e);
   }
 }

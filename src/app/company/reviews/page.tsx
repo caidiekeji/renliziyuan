@@ -90,7 +90,7 @@ function ReviewsContent() {
     <CompanyShell>
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-text">收到的评价</h1>
+          <h1 className="text-xl font-semibold text-text">收到的评价</h1>
           <p className="mt-0.5 text-xs text-text-secondary">
             平均评分 {Number(data?.avg_rating || 0).toFixed(1)} · 共 {data?.review_count ?? 0} 条
           </p>
@@ -104,10 +104,10 @@ function ReviewsContent() {
       ) : (
         <div className="space-y-3">
           {data.items.map((r) => (
-            <div key={r.id} className="card p-4">
+            <div key={r.id} className="card p-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-text">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-text">
                     {r.reviewer.name.slice(0, 1)}
                   </span>
                   <div>
@@ -122,8 +122,8 @@ function ReviewsContent() {
               </div>
               <p className="mt-3 whitespace-pre-wrap text-sm text-text-secondary">{r.content}</p>
               {r.reply && (
-                <div className="mt-3 rounded-lg bg-bg-subtle p-3">
-                  <p className="text-xs font-medium text-text">企业回复</p>
+                <div className="mt-3 rounded-lg border-l-2 border-primary bg-primary-soft/30 px-3 py-2.5">
+                  <p className="text-xs font-medium text-primary">企业回复</p>
                   <p className="mt-1 whitespace-pre-wrap text-sm text-text-secondary">{r.reply}</p>
                 </div>
               )}

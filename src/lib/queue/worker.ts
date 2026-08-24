@@ -8,11 +8,13 @@ import { enqueue } from '@/lib/queue';
 import { notifyUser } from '@/lib/notification';
 import { log } from '@/lib/logger';
 
-/** 每日 00:05 执行的统计归集（计算到下一个凌晨，避免跨日漂移） */
+/** 每日 00:05 执行的统计归集（归集「昨日」完整一天的数据，避免跨日漂移） */
 function scheduleDailyRollup() {
   const run = async () => {
     try {
-      await rollupDailyStat(new Date());
+      // 凌晨 00:05 归集昨日（昨天 00:00~24:00 已完整结束）
+      const yesterday = new Date(Date.now() - 24 * 3600 * 1000);
+      await rollupDailyStat(yesterday);
       log('info', 'worker:daily-rollup:done');
     } catch (e: any) {
       log('error', 'worker:daily-rollup:failed', { error: e?.message });

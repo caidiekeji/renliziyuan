@@ -12,6 +12,7 @@ import { Pagination } from '@/components/ui/Pagination';
 import { PageLoading } from '@/components/ui/Spinner';
 import { Select } from '@/components/ui/Select';
 import { useToast } from '@/components/ui/Toast';
+import { ReviewForm } from '@/components/review/ReviewForm';
 import { useRoleGuard } from '@/lib/route-guard';
 import { api, qs } from '@/lib/api';
 import { formatDate, JOB_TYPE_LABEL } from '@/lib/utils';
@@ -56,6 +57,8 @@ function MyHourlyJobsContent() {
   const [loading, setLoading] = useState(true);
   const [reloadKey, setReloadKey] = useState(0);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [reviewAppId, setReviewAppId] = useState<string | null>(null);
+  const [reviewedIds, setReviewedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     setLoading(true);
@@ -135,11 +138,19 @@ function MyHourlyJobsContent() {
                   </div>
                   <p className="mt-2 text-xs text-text-secondary">报名时间：{formatDate(app.created_at)}</p>
                 </div>
-                <div className="shrink-0">
+                <div className="shrink-0 flex flex-col gap-1.5">
                   {app.status === 'APPLIED' && (
                     <Button size="sm" variant="ghost" loading={busyId === app.id} onClick={() => cancel(app)}>
                       取消报名
                     </Button>
+                  )}
+                  {app.status === 'APPLIED' && !reviewedIds.has(app.id) && (
+                    <Button size="sm" variant="ghost" onClick={() => setReviewAppId(app.id)}>
+                      写评价
+                    </Button>
+                  )}
+                  {reviewedIds.has(app.id) && (
+                    <span className="text-xs text-text-secondary text-center">已评价</span>
                   )}
                 </div>
               </div>
@@ -148,6 +159,18 @@ function MyHourlyJobsContent() {
         </div>
       )}
       <Pagination page={page} pageSize={pageSize} total={total} />
+      {reviewAppId && (
+        <ReviewForm
+          open
+          onClose={() => setReviewAppId(null)}
+          targetType="COMPANY"
+          hourlyApplicationId={reviewAppId}
+          onSubmitted={() => {
+            setReviewedIds((prev) => new Set([...prev, reviewAppId]));
+            setReviewAppId(null);
+          }}
+        />
+      )}
     </CandidateShell>
   );
 }

@@ -120,7 +120,7 @@ export default function CompanyMembersPage() {
   return (
     <CompanyShell>
       <div className="mb-4 flex items-center justify-between gap-2">
-        <h1 className="text-lg font-bold text-text">成员管理（{members.length}）</h1>
+        <h1 className="text-xl font-semibold text-text">成员管理（{members.length}）</h1>
         {isOwner && <Button size="sm" onClick={openInvite}>邀请成员</Button>}
       </div>
 

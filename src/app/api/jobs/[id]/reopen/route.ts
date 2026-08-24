@@ -20,7 +20,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
   // 事务 + 企业行锁：串行化同企业下的恢复/发布配额读写，防止并发超卖（v1.9.3-P2③）
   const result = await prisma.$transaction(async (tx) => {
-    await tx.$queryRaw`SELECT id FROM companies WHERE id = ${job.company_id} FOR UPDATE`;
+    await tx.$queryRaw`SELECT id FROM "Company" WHERE id = ${job.company_id}::uuid FOR UPDATE`;
 
     if (cfg.audit_mode === 'PRE') {
       await tx.job.update({ where: { id }, data: { status: 'CLOSED', closed_reason: null, audit_status: 'PENDING' } });

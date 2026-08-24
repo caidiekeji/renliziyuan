@@ -39,7 +39,7 @@ export default function AdminLoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-bg px-4">
       <div className="card w-full max-w-sm p-6 sm:p-8">
-        <h1 className="text-xl font-bold text-text">管理后台登录</h1>
+        <h1 className="text-xl font-semibold text-text">管理后台登录</h1>
         <p className="mt-1 text-sm text-text-secondary">仅限管理员账号</p>
         <div className="mt-6 space-y-4">
           <Input

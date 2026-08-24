@@ -240,7 +240,7 @@ function BackupContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="数据备份">
-      <h1 className="mb-4 text-lg font-bold text-text">数据备份与恢复</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">数据备份与恢复</h1>
 
       {/* 备份配置 */}
       <Card
@@ -349,13 +349,15 @@ function BackupContent() {
           ) : rows.length === 0 ? (
             <Empty title="暂无备份记录" />
           ) : (
-            <div className="divide-y divide-border">
-              {rows.map((it) => (
-                <BackupRow key={it.id} item={it} onDelete={setDeleting} />
-              ))}
-            </div>
+            <>
+              <div className="divide-y divide-border">
+                {rows.map((it) => (
+                  <BackupRow key={it.id} item={it} onDelete={setDeleting} />
+                ))}
+              </div>
+              <Pagination page={page} pageSize={PAGE_SIZE} total={total} />
+            </>
           )}
-          <Pagination page={page} pageSize={PAGE_SIZE} total={total} />
         </Card>
       </div>
 

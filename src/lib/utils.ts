@@ -1,7 +1,8 @@
-/** 薪资格式化：MONTH_K（K 单位）或 DAY_YUAN（元/天） */
+/** 薪资格式化 */
 export function formatSalary(salaryMin?: number | null, salaryMax?: number | null, unit?: string | null): string {
   if (salaryMin == null || salaryMax == null) return '面议';
   if (unit === 'DAY_YUAN') return `${salaryMin}-${salaryMax}元/天`;
+  if (unit === 'HOUR_YUAN') return `${salaryMin}-${salaryMax}元/小时`;
   return `${salaryMin}-${salaryMax}K`;
 }
 

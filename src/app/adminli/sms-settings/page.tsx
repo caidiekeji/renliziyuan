@@ -126,7 +126,7 @@ function SmsSettingsContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="短信设置">
-      <h1 className="mb-4 text-lg font-bold text-text">短信设置</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">短信设置</h1>
 
       {loading ? (
         <PageLoading />

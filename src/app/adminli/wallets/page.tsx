@@ -145,12 +145,17 @@ function AdminWalletsContent() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="企业余额">
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <Input placeholder="企业名称搜索" value={kwInput} onChange={(e) => setKwInput(e.target.value)} className="w-56" />
-        <Button variant="secondary" onClick={applyFilter}>
-          筛选
-        </Button>
-      </div>
+      <h1 className="mb-5 text-xl font-semibold text-text">企业余额</h1>
+
+      <Card className="mb-5 p-4">
+        <div className="flex flex-wrap items-end gap-3">
+          <Input label="企业名称" placeholder="输入企业名称搜索" value={kwInput} onChange={(e) => setKwInput(e.target.value)} className="w-56" />
+          <div className="flex gap-2">
+            <Button onClick={applyFilter}>搜索</Button>
+            <Button variant="ghost" onClick={() => { setKwInput(''); router.replace('/adminli/wallets'); }}>重置</Button>
+          </div>
+        </div>
+      </Card>
 
       {loading ? (
         <PageLoading />
@@ -163,31 +168,31 @@ function AdminWalletsContent() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[860px] text-sm">
               <thead>
-                <tr className="border-b border-border text-left text-xs text-text-secondary">
-                  <th className="px-4 py-3 font-medium">企业</th>
-                  <th className="px-4 py-3 font-medium">可用余额</th>
-                  <th className="px-4 py-3 font-medium">冻结</th>
-                  <th className="px-4 py-3 font-medium">累计充值</th>
-                  <th className="px-4 py-3 font-medium">累计消费</th>
-                  <th className="px-4 py-3 font-medium">更新时间</th>
-                  <th className="px-4 py-3 font-medium">操作</th>
+                <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
+                  <th className="px-3 py-3 font-medium">企业</th>
+                  <th className="px-3 py-3 font-medium">可用余额</th>
+                  <th className="px-3 py-3 font-medium">冻结</th>
+                  <th className="px-3 py-3 font-medium">累计充值</th>
+                  <th className="px-3 py-3 font-medium">累计消费</th>
+                  <th className="px-3 py-3 font-medium">更新时间</th>
+                  <th className="px-3 py-3 font-medium">操作</th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((w) => (
-                  <tr key={w.company_id} className="border-b border-border/60 last:border-0 hover:bg-bg-subtle">
-                    <td className="px-4 py-3">
+                  <tr key={w.company_id} className="border-b border-border/60 last:border-0 hover:bg-bg-subtle/60">
+                    <td className="px-3 py-2.5">
                       <span className="font-medium text-text">{w.company.name}</span>
                       <Badge tone={w.company.verify_status === 'VERIFIED' ? 'success' : 'neutral'} className="ml-2">
                         {w.company.verify_status === 'VERIFIED' ? '已认证' : w.company.verify_status === 'PENDING' ? '待审核' : '未认证'}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3 font-semibold text-primary">¥{Number(w.balance).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-text-secondary">¥{Number(w.frozen).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-text-secondary">¥{Number(w.total_recharge).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-text-secondary">¥{Number(w.total_consume).toFixed(2)}</td>
-                    <td className="px-4 py-3 text-xs text-text-secondary">{formatDateTime(w.updated_at)}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2.5 font-semibold text-primary">¥{Number(w.balance).toFixed(2)}</td>
+                    <td className="px-3 py-2.5 text-text-secondary">¥{Number(w.frozen).toFixed(2)}</td>
+                    <td className="px-3 py-2.5 text-text-secondary">¥{Number(w.total_recharge).toFixed(2)}</td>
+                    <td className="px-3 py-2.5 text-text-secondary">¥{Number(w.total_consume).toFixed(2)}</td>
+                    <td className="px-3 py-2.5 text-xs text-text-secondary">{formatDateTime(w.updated_at)}</td>
+                    <td className="px-3 py-2.5">
                       <div className="flex gap-1.5">
                         <Button size="sm" variant="secondary" onClick={() => viewTxns(w)}>
                           流水
@@ -202,9 +207,11 @@ function AdminWalletsContent() {
               </tbody>
             </table>
           </div>
+          <div className="px-2 pb-2">
+            <Pagination page={page} pageSize={pageSize} total={total} />
+          </div>
         </Card>
       )}
-      <Pagination page={page} pageSize={pageSize} total={total} />
 
       {/* 交易流水 */}
       <Modal open={!!txnTarget} title={`交易流水：${txnTarget?.company.name || ''}`} onClose={() => setTxnTarget(null)} width="max-w-2xl">
@@ -222,7 +229,7 @@ function AdminWalletsContent() {
           <div className="overflow-x-auto">
             <table className="w-full min-w-[560px] text-sm">
               <thead>
-                <tr className="border-b border-border text-left text-xs text-text-secondary">
+                <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
                   <th className="px-3 py-2.5 font-medium">类型</th>
                   <th className="px-3 py-2.5 font-medium">金额</th>
                   <th className="px-3 py-2.5 font-medium">余额</th>
@@ -254,7 +261,22 @@ function AdminWalletsContent() {
       </Modal>
 
       {/* 调账 */}
-      <Modal open={!!adjustTarget} title={`手动调账：${adjustTarget?.company.name || ''}`} onClose={() => setAdjustTarget(null)} width="max-w-md">
+      <Modal
+        open={!!adjustTarget}
+        title={`手动调账：${adjustTarget?.company.name || ''}`}
+        onClose={() => setAdjustTarget(null)}
+        width="max-w-md"
+        footer={
+          <>
+            <Button variant="ghost" onClick={() => setAdjustTarget(null)} disabled={adjusting}>
+              取消
+            </Button>
+            <Button onClick={submitAdjust} loading={adjusting}>
+              确认调账
+            </Button>
+          </>
+        }
+      >
         <div className="space-y-4">
           <Input
             label="调整金额（正数入账 / 负数扣减）"
@@ -266,14 +288,6 @@ function AdminWalletsContent() {
           />
           <Input label="调账原因" placeholder="必填，如：活动补偿 / 异常扣费退还" value={adjustForm.reason} onChange={(e) => setAdjustForm((f) => ({ ...f, reason: e.target.value }))} />
           <p className="text-xs text-text-secondary">调账操作将记录到操作审计，请谨慎操作。</p>
-          <div className="flex justify-end gap-2">
-            <Button variant="ghost" onClick={() => setAdjustTarget(null)} disabled={adjusting}>
-              取消
-            </Button>
-            <Button onClick={submitAdjust} loading={adjusting}>
-              确认调账
-            </Button>
-          </div>
         </div>
       </Modal>
     </DashboardShell>

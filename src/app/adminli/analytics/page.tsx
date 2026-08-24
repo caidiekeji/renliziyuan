@@ -78,8 +78,8 @@ export default function AdminAnalyticsPage() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="数据分析">
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-lg font-bold text-text">数据分析</h1>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold text-text">数据分析</h1>
         <div className="flex gap-1.5">
           {RANGES.map((r) => (
             <button
@@ -102,11 +102,11 @@ export default function AdminAnalyticsPage() {
       ) : (
         <div className="space-y-4">
           {/* 汇总统计卡 */}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-5">
             {statCards.map((s) => (
-              <div key={s.label} className="card p-4">
-                <p className="text-xs text-text-secondary">{s.label}</p>
-                <p className={`mt-1 text-xl font-bold sm:text-2xl ${s.tone}`}>{s.value ?? '-'}</p>
+              <div key={s.label} className="card p-5">
+                <p className="text-sm text-text-secondary">{s.label}</p>
+                <p className={`mt-1 text-[28px] font-bold leading-tight ${s.tone}`}>{s.value ?? '-'}</p>
               </div>
             ))}
           </div>

@@ -48,7 +48,7 @@ export default function AdminExportPage() {
 
   return (
     <DashboardShell nav={ADMIN_NAV} title="管理后台" sub="报表导出">
-      <h1 className="mb-4 text-lg font-bold text-text">报表导出</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">报表导出</h1>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         {EXPORTS.map((e) => (

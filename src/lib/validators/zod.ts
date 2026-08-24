@@ -73,7 +73,7 @@ const jobBaseSchema = z.object({
   description: z.string().min(10).max(20000),
   salary_min: z.coerce.number().int().min(0).optional(),
   salary_max: z.coerce.number().int().min(0).optional(),
-  salary_unit: z.enum(['MONTH_K', 'DAY_YUAN']).default('MONTH_K'),
+  salary_unit: z.enum(['MONTH_K', 'DAY_YUAN', 'HOUR_YUAN']).default('MONTH_K'),
   city: z.string().min(1).max(50),
   industry_id: z.string().uuid().optional(),
   job_title_id: z.string().uuid().optional(),

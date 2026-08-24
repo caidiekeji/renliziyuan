@@ -63,7 +63,7 @@ export default function RestoreJobPage() {
   return (
     <CompanyShell>
       <CompanyGuard>
-        <h1 className="mb-4 text-lg font-bold text-text">恢复职位</h1>
+        <h1 className="mb-5 text-xl font-semibold text-text">恢复职位</h1>
         {loading ? (
           <PageLoading />
         ) : !job ? (

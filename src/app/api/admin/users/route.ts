@@ -47,6 +47,9 @@ export async function POST(req: NextRequest) {
   if ('error' in auth) return auth.error;
   const { phone, name, role, password } = await req.json().catch(() => ({}));
   if (!phone || !name || !role) return fail('VALIDATION_ERROR', '参数不完整');
+  // 角色白名单：仅允许创建 CANDIDATE/COMPANY，禁止创建管理员
+  if (!['CANDIDATE', 'COMPANY'].includes(role)) return fail('VALIDATION_ERROR', '非法的角色');
+  if (!/^1[3-9]\d{9}$/.test(phone)) return fail('VALIDATION_ERROR', '手机号格式不正确');
   try {
     const existing = await prisma.user.findUnique({ where: { phone } });
     if (existing) return fail('PHONE_EXISTS', '手机号已存在');

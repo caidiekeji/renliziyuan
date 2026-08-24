@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
 export function Pagination({
@@ -18,20 +18,21 @@ export function Pagination({
   const sp = useSearchParams();
   const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-  const go = (p: number) => {
-    const n = Math.min(totalPages, Math.max(1, p));
-    if (onChange) return onChange(n);
-    const params = new URLSearchParams(sp.toString());
-    if (n <= 1) params.delete('page');
-    else params.set('page', String(n));
-    router.push(`?${params.toString()}`);
-  };
+  const go = useCallback(
+    (p: number) => {
+      const n = Math.min(totalPages, Math.max(1, p));
+      if (onChange) return onChange(n);
+      const params = new URLSearchParams(sp.toString());
+      if (n <= 1) params.delete('page');
+      else params.set('page', String(n));
+      router.push(`?${params.toString()}`);
+    },
+    [totalPages, onChange, sp, router]
+  );
 
   useEffect(() => {
-    // 若当前页超出范围，回退到最后一页
     if (totalPages > 0 && page > totalPages) go(totalPages);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalPages, page]);
+  }, [totalPages, page, go]);
 
   if (totalPages <= 1) return null;
   const pages: number[] = [];
@@ -47,7 +48,7 @@ export function Pagination({
   return (
     <div className="mt-6 flex items-center justify-center gap-1">
       <button
-        className="h-8 rounded-md px-2 text-sm text-text-secondary hover:bg-bg-subtle disabled:opacity-40"
+        className="min-h-[44px] rounded-lg px-3 text-sm text-text-secondary transition-colors duration-200 hover:bg-bg-subtle hover:text-text disabled:opacity-40"
         disabled={page <= 1}
         onClick={() => go(page - 1)}
       >
@@ -61,8 +62,8 @@ export function Pagination({
         ) : (
           <button
             key={p}
-            className={`h-8 min-w-8 rounded-md px-2 text-sm ${
-              p === page ? 'bg-primary text-white' : 'text-text-secondary hover:bg-bg-subtle'
+            className={`min-h-[44px] min-w-[44px] rounded-lg px-2 text-sm transition-colors duration-200 ${
+              p === page ? 'bg-primary text-white' : 'text-text-secondary hover:bg-bg-subtle hover:text-text'
             }`}
             onClick={() => go(p)}
           >
@@ -71,7 +72,7 @@ export function Pagination({
         )
       )}
       <button
-        className="h-8 rounded-md px-2 text-sm text-text-secondary hover:bg-bg-subtle disabled:opacity-40"
+        className="min-h-[44px] rounded-lg px-3 text-sm text-text-secondary transition-colors duration-200 hover:bg-bg-subtle hover:text-text disabled:opacity-40"
         disabled={page >= totalPages}
         onClick={() => go(page + 1)}
       >

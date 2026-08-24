@@ -17,20 +17,27 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (!member) return error!;
   if (boost.status !== 'PAUSED') return fail('NOT_RESUMABLE', '仅暂停中的置顶可恢复', 400);
 
-  const wallet = await prisma.companyWallet.findUnique({ where: { company_id: boost.company_id } });
-  if (!wallet || Number(wallet.balance) < Number(boost.bid))
-    return fail('INSUFFICIENT_BALANCE', '企业余额不足，请先充值', 400);
-
-  // 顺延暂停天数
-  let endDate = new Date(boost.end_date);
-  if (boost.paused_at) {
-    const pausedDays = Math.ceil((new Date().getTime() - boost.paused_at.getTime()) / 86_400_000);
-    endDate = new Date(endDate.getTime() + pausedDays * 86_400_000);
+  // 余额检查 + 状态更新放同一事务（企业钱包行锁），防并发穿透导致余额为负
+  try {
+    const updated = await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM "CompanyWallet" WHERE company_id = ${boost.company_id}::uuid FOR UPDATE`;
+      const wallet = await tx.companyWallet.findUnique({ where: { company_id: boost.company_id } });
+      if (!wallet || Number(wallet.balance) < Number(boost.bid)) throw new Error('INSUFFICIENT_BALANCE');
+      // 顺延暂停天数
+      let endDate = new Date(boost.end_date);
+      if (boost.paused_at) {
+        const pausedDays = Math.ceil((new Date().getTime() - boost.paused_at.getTime()) / 86_400_000);
+        endDate = new Date(endDate.getTime() + pausedDays * 86_400_000);
+      }
+      return tx.jobBiddingBoost.update({
+        where: { id },
+        data: { status: 'ACTIVE', paused_at: null, end_date: endDate },
+      });
+    });
+    await settleCityBoosts(boost.city).catch(() => undefined);
+    return ok(updated);
+  } catch (e: any) {
+    if (e?.message === 'INSUFFICIENT_BALANCE') return fail('INSUFFICIENT_BALANCE', '企业余额不足，请先充值', 400);
+    throw e;
   }
-  const updated = await prisma.jobBiddingBoost.update({
-    where: { id },
-    data: { status: 'ACTIVE', paused_at: null, end_date: endDate },
-  });
-  await settleCityBoosts(boost.city).catch(() => undefined);
-  return ok(updated);
 }

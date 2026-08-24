@@ -8,6 +8,11 @@ interface ProvinceDatum {
   value: number;
 }
 
+/** 从 CSS 变量读取颜色值（ECharts canvas 不支持 CSS 变量，需运行时解析） */
+function cssVar(name: string): string {
+  return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
 /** 将省份全称/简称统一为短名，用于与 ECharts 地图要素匹配 */
 function normalize(name: string): string {
   return name
@@ -46,6 +51,12 @@ export function ChinaMap({ data, height = 420 }: { data: ProvinceDatum[]; height
         .map((d) => ({ name: nameIndex.get(normalize(d.name)) || d.name, value: d.value }))
         .filter((d) => d.value > 0);
 
+      const colorPrimarySoft = cssVar('--color-primary-soft') || '#e8efff';
+      const colorAccent = cssVar('--color-accent') || '#00b386';
+      const colorPrimary = cssVar('--color-primary') || '#1a5cff';
+      const colorBg = cssVar('--color-bg') || '#ffffff';
+      const colorBorder = cssVar('--color-border') || '#e2e6ec';
+
       const chart = echarts.init(ref.current);
       chartRef.current = chart;
       chart.setOption({
@@ -60,7 +71,7 @@ export function ChinaMap({ data, height = 420 }: { data: ProvinceDatum[]; height
           bottom: 12,
           text: ['高', '低'],
           calculable: true,
-          inRange: { color: ['#e3f3ee', '#12a780', '#0e7b63'] },
+          inRange: { color: [colorPrimarySoft, colorAccent, colorPrimary] },
         },
         series: [
           {
@@ -69,8 +80,8 @@ export function ChinaMap({ data, height = 420 }: { data: ProvinceDatum[]; height
             map: 'china',
             roam: true,
             label: { show: false },
-            emphasis: { label: { show: true, color: '#0e7b63' }, itemStyle: { areaColor: '#12a780' } },
-            itemStyle: { borderColor: '#ffffff', borderWidth: 1, areaColor: '#e5e7eb' },
+            emphasis: { label: { show: true, color: colorPrimary }, itemStyle: { areaColor: colorAccent } },
+            itemStyle: { borderColor: colorBg, borderWidth: 1, areaColor: colorBorder },
             data: values,
           },
         ],

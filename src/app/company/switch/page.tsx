@@ -1,8 +1,10 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { CompanyShell } from '@/components/company/CompanyShell';
 import { Badge } from '@/components/ui/Badge';
+import { Button } from '@/components/ui/Button';
 import { Empty } from '@/components/ui/Empty';
 import { Rating } from '@/components/ui/Rating';
 import { PageLoading } from '@/components/ui/Spinner';
@@ -41,14 +43,18 @@ export default function CompanySwitchPage() {
   return (
     <CompanyShell>
       <div className="mb-4">
-        <h1 className="text-lg font-bold text-text">切换企业</h1>
+        <h1 className="text-xl font-semibold text-text">切换企业</h1>
         <p className="mt-1 text-sm text-text-secondary">选择要进入的企业工作台</p>
       </div>
 
       {loading ? (
         <PageLoading />
       ) : sorted.length === 0 ? (
-        <Empty title="你还没有加入任何企业" description="请先在企业端注册并创建企业" />
+        <Empty title="你还没有加入任何企业" description="请先创建企业或等待邀请" action={
+          <Link href="/company/create">
+            <Button>创建企业</Button>
+          </Link>
+        } />
       ) : (
         <div className="flex flex-col gap-3">
           {sorted.map((e) => (

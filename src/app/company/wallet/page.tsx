@@ -14,7 +14,7 @@ import { Select } from '@/components/ui/Select';
 import { useToast } from '@/components/ui/Toast';
 import { useRoleGuard } from '@/lib/route-guard';
 import { api, qs } from '@/lib/api';
-import { useMyCompanies, CHANNEL_LABEL } from '@/lib/company';
+import { useMyCompanies } from '@/lib/company';
 import { formatDateTime } from '@/lib/utils';
 
 interface WalletInfo {
@@ -54,8 +54,6 @@ const TXN_TYPE_OPTIONS = [
   { value: 'ADJUST', label: '调账' },
 ];
 
-const CHANNELS = ['ALIPAY', 'WECHAT', 'STRIPE'];
-
 function CompanyWalletContent() {
   const guarding = useRoleGuard(['COMPANY', 'CANDIDATE'], '/');
   const router = useRouter();
@@ -74,10 +72,21 @@ function CompanyWalletContent() {
   const [loading, setLoading] = useState(true);
 
   const [amount, setAmount] = useState('100');
-  const [channel, setChannel] = useState('STRIPE');
+  const [channels, setChannels] = useState<{ channel: string; label: string }[]>([]);
+  const [channel, setChannel] = useState('');
   const [recharging, setRecharging] = useState(false);
 
   const companyId = current?.company.id;
+
+  // 可用支付渠道：数据库已启用的真实渠道（不含模拟支付）
+  useEffect(() => {
+    api.get<{ channels: { channel: string; label: string }[] }>('/api/payments/channels').then((r) => {
+      if (!r.ok) return;
+      const list = r.data.channels || [];
+      setChannels(list);
+      setChannel((prev) => (list.some((c) => c.channel === prev) ? prev : list[0]?.channel || ''));
+    });
+  }, []);
 
   const load = useCallback(() => {
     if (!companyId) return;
@@ -112,6 +121,7 @@ function CompanyWalletContent() {
   const recharge = async () => {
     const amt = Number(amount);
     if (!Number.isFinite(amt) || amt < 10 || amt > 10000) return toast('error', '充值金额需在 10~10000 元之间');
+    if (channels.length === 0) return toast('error', '暂无可用的支付方式，请先联系管理员配置支付渠道');
     setRecharging(true);
     const res = await api.post<{ order_no: string | null; pay_url: string | null; amount: number }>('/api/company/wallet/recharge', {
       amount: amt,
@@ -142,7 +152,7 @@ function CompanyWalletContent() {
 
   return (
     <CompanyShell>
-      <h1 className="mb-4 text-lg font-bold text-text">企业钱包</h1>
+      <h1 className="mb-5 text-xl font-semibold text-text">企业钱包</h1>
 
       {/* 余额概览 */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -172,19 +182,25 @@ function CompanyWalletContent() {
             <Input label="充值金额（元）" type="number" min={10} max={10000} value={amount} onChange={(e) => setAmount(e.target.value)} />
           </div>
           <div className="w-full sm:w-48">
-            <Select label="支付渠道" value={channel} onChange={(e) => setChannel(e.target.value)}>
-              {CHANNELS.map((c) => (
-                <option key={c} value={c}>
-                  {CHANNEL_LABEL[c] || c}
-                </option>
-              ))}
-            </Select>
+            {channels.length === 0 ? (
+              <Input label="支付渠道" value="暂无可用的支付方式" disabled />
+            ) : (
+              <Select label="支付渠道" value={channel} onChange={(e) => setChannel(e.target.value)}>
+                {channels.map((c) => (
+                  <option key={c.channel} value={c.channel}>
+                    {c.label}
+                  </option>
+                ))}
+              </Select>
+            )}
           </div>
-          <Button onClick={recharge} loading={recharging}>
+          <Button onClick={recharge} loading={recharging} disabled={channels.length === 0}>
             立即充值
           </Button>
         </div>
-        <p className="mt-2 text-xs text-text-secondary">充值金额 10~10000 元；开发环境下仅「模拟支付」渠道可完成。</p>
+        {channels.length === 0 && (
+          <p className="mt-2 text-xs text-text-secondary">充值金额 10~10000 元；请先由管理员在后台配置支付宝/微信支付渠道。</p>
+        )}
       </Card>
 
       {/* 交易流水 */}

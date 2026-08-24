@@ -14,7 +14,7 @@ import { useCountdown } from '@/lib/use-countdown';
 export default function RegisterPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { refresh } = useAuth();
+  const { refresh, setCompanyId } = useAuth();
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
   const [name, setName] = useState('');
@@ -49,7 +49,7 @@ export default function RegisterPage() {
     if (!name.trim()) return toast('error', '请输入昵称');
     if (!agreeTerms || !agreePrivacy) return toast('error', '请阅读并同意协议条款');
     setLoading(true);
-    const res = await api.post<{ user: { role: string } }>('/api/auth/register', {
+    const res = await api.post<{ user: { role: string }; company_id?: string }>('/api/auth/register', {
       phone,
       code,
       name: name.trim(),
@@ -62,6 +62,10 @@ export default function RegisterPage() {
     if (!res.ok) return toast('error', res.error?.message || '注册失败');
     toast('success', '注册成功');
     await refresh();
+    // 企业角色注册时，后端自动创建企业并返回 company_id，设置到上下文中
+    if (role === 'COMPANY' && res.data.company_id) {
+      setCompanyId(res.data.company_id);
+    }
     router.push(role === 'COMPANY' ? '/company' : '/candidate');
   };
 
