@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PublicHeader, PublicFooter } from '@/components/layout/PublicLayout';
@@ -10,10 +10,19 @@ import { api } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/lib/auth-context';
 import { useCountdown } from '@/lib/use-countdown';
+import { PageLoading } from '@/components/ui/Spinner';
 
 type LoginMode = 'sms' | 'password';
 
 export default function LoginPage() {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const router = useRouter();
   const { toast } = useToast();
   const { refresh } = useAuth();
@@ -65,7 +74,7 @@ export default function LoginPage() {
       <PublicHeader />
       <div className="mx-auto flex max-w-md flex-col px-4 py-12">
         <div className="card p-6 sm:p-8">
-          <h1 className="text-xl font-bold text-text">登录</h1>
+          <h1 className="text-xl font-semibold text-text">登录</h1>
 
           {/* 登录方式切换 */}
           <div className="mt-4 grid grid-cols-2 gap-1 rounded-lg bg-bg p-1">

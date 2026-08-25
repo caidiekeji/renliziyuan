@@ -473,7 +473,7 @@ function SwitchesPanel() {
 
   return (
     <div>
-      <div className="card p-5">
+      <div className="card p-6">
         <div className="divide-y divide-border">
           <Switch label="开放注册" hint="关闭后新用户无法注册" checked={!!site.register_enabled} onChange={(v) => set('register_enabled', v)} />
           <Switch label="开启聊天" hint="关闭后全部聊天功能停用" checked={!!site.chat_enabled} onChange={(v) => set('chat_enabled', v)} />

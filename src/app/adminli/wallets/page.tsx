@@ -166,7 +166,7 @@ function AdminWalletsContent() {
       ) : (
         <Card className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] text-sm">
+            <table className="w-full min-w-[860px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
                   <th className="px-3 py-3 font-medium">企业</th>

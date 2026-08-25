@@ -57,7 +57,7 @@ export default function CompanyCreatePage() {
         <p className="mt-1 text-sm text-text-secondary">填写企业基本信息，创建后可进入企业工作台</p>
       </div>
 
-      <div className="card p-5">
+      <div className="card p-6">
         <div className="space-y-4">
           <Input label="企业名称" required maxLength={100} placeholder="请输入企业名称" value={name} onChange={(e) => setName(e.target.value)} />
           <div>

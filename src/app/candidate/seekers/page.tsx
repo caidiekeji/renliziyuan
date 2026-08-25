@@ -146,7 +146,7 @@ export default function CandidateSeekersPage() {
   return (
     <CandidateShell sub="我的求职信息">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-lg font-bold text-text">我的求职信息（{posts.length}）</h1>
+        <h1 className="text-xl font-semibold text-text">我的求职信息（{posts.length}）</h1>
         <Button size="sm" onClick={openCreate}>发布求职信息</Button>
       </div>
 

@@ -115,15 +115,15 @@ function AdminHourlyJobsContent() {
       <h1 className="mb-5 text-xl font-semibold text-text">小时工管理</h1>
       {/* 数据概览 */}
       <div className="mb-5 grid grid-cols-3 gap-5">
-        <div className="card p-5">
+        <div className="card p-6">
           <p className="text-sm text-text-secondary">小时工职位</p>
           <p className="mt-1 text-[28px] font-bold leading-tight text-text">{stats?.total_jobs ?? '-'}</p>
         </div>
-        <div className="card p-5">
+        <div className="card p-6">
           <p className="text-sm text-text-secondary">已报名</p>
           <p className="mt-1 text-[28px] font-bold leading-tight text-text">{stats?.total_applied ?? '-'}</p>
         </div>
-        <div className="card p-5">
+        <div className="card p-6">
           <p className="text-sm text-text-secondary">已取消</p>
           <p className="mt-1 text-[28px] font-bold leading-tight text-text">{stats?.total_cancelled ?? '-'}</p>
         </div>
@@ -152,7 +152,7 @@ function AdminHourlyJobsContent() {
       ) : (
         <Card className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[820px] text-sm">
+            <table className="w-full min-w-[820px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
                   <th className="px-3 py-3 font-medium">职位</th>

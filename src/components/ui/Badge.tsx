@@ -5,7 +5,7 @@ type Tone = 'default' | 'primary' | 'success' | 'warning' | 'danger' | 'neutral'
 const tones: Record<Tone, string> = {
   default: 'bg-bg-subtle text-text-secondary',
   primary: 'bg-primary-soft text-text',
-  success: 'bg-accent-soft text-accent',
+  success: 'bg-success-soft text-success',
   warning: 'bg-warning-soft text-warning-deep',
   danger: 'bg-danger-soft text-danger',
   neutral: 'bg-border/50 text-text-secondary',

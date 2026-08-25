@@ -136,7 +136,7 @@ export default function CompanyProfilePage() {
       {dataLoading ? (
         <PageLoading />
       ) : (
-        <div className="card p-5">
+        <div className="card p-6">
           <div className="space-y-4">
             <Input label="企业名称" maxLength={100} value={form.name} disabled={isViewer} onChange={(e) => set('name', e.target.value)} />
             <div>

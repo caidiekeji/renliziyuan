@@ -63,7 +63,7 @@ function FavoritesContent() {
   return (
     <CandidateShell sub="我的收藏">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-lg font-bold text-text">我的收藏（{total}）</h1>
+        <h1 className="text-xl font-semibold text-text">我的收藏（{total}）</h1>
       </div>
 
       {loading ? (

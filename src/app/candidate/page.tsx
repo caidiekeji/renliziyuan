@@ -69,7 +69,7 @@ export default function CandidateHomePage() {
           )}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-xl font-bold text-text">{user.name}</h1>
+              <h1 className="text-xl font-semibold text-text">{user.name}</h1>
               <Badge tone="primary">{ROLE_LABEL[user.role] || user.role}</Badge>
             </div>
             <p className="mt-1 text-sm text-text-secondary">
@@ -97,13 +97,13 @@ export default function CandidateHomePage() {
       {/* 统计入口卡片 */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <StatCard label="我的求职信息" value={seekers} href="/candidate/seekers" tone="bg-primary-soft text-text"
-          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Zm0 0v6h6" /></svg>} />
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9l-6-6Zm0 0v6h6" /></svg>} />
         <StatCard label="我的收藏" value={favorites} href="/candidate/favorites" tone="bg-warning-soft text-warning"
-          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8L12 2z" /></svg>} />
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2l2.9 6.3 6.9.8-5.1 4.7 1.4 6.8L12 17.8 5.9 20.6l1.4-6.8L2.2 9.1l6.9-.8L12 2z" /></svg>} />
         <StatCard label="我的评价" value={reviews} href="/candidate/reviews" tone="bg-accent-soft text-accent"
-          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5Z" /></svg>} />
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5Z" /></svg>} />
         <StatCard label="消息" value={unread} href="/candidate/messages" tone="bg-danger-soft text-danger"
-          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9m6 11a2 2 0 0 1-2-2h4a2 2 0 0 1-2 2Z" /></svg>} />
+          icon={<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 9 3 9H3s3-2 3-9m6 11a2 2 0 0 1-2-2h4a2 2 0 0 1-2 2Z" /></svg>} />
       </div>
 
       {user.companies.length > 0 && (

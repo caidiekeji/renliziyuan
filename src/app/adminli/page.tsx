@@ -90,7 +90,7 @@ export default function AdminDashboardPage() {
 
       <div className="grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
         {stats.map((s) => (
-          <div key={s.label} className="card p-5">
+          <div key={s.label} className="card p-6">
             <p className="text-sm text-text-secondary">{s.label}</p>
             <p className={`mt-1 text-[28px] font-bold leading-tight ${s.tone}`}>{s.value}</p>
           </div>

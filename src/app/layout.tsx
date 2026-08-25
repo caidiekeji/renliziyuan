@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, JetBrains_Mono, Noto_Sans_SC } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/lib/auth-context";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -18,6 +18,13 @@ const inter = Inter({
 const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   subsets: ["latin"],
+  display: "swap",
+});
+
+const notoSansSC = Noto_Sans_SC({
+  variable: "--font-noto-sans-sc",
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
@@ -40,7 +47,7 @@ export default async function RootLayout({
   const nav = (await getNavMenus()).map((n) => ({ id: n.id, label: n.label, href: n.href, sort: n.sort }));
   return (
     <html lang="zh-CN">
-      <body className={`${inter.variable} ${jetbrainsMono.variable} antialiased`}>
+      <body className={`${inter.variable} ${jetbrainsMono.variable} ${notoSansSC.variable} antialiased`}>
         <AuthProvider>
           <ToastProvider>
             <SiteConfigProvider siteName={cfg.site_name} siteLogo={cfg.site_logo || ''} nav={nav}>

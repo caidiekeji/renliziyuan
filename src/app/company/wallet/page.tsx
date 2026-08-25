@@ -156,19 +156,19 @@ function CompanyWalletContent() {
 
       {/* 余额概览 */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="card p-5">
+        <div className="card p-6">
           <p className="text-sm text-text-secondary">可用余额</p>
           <p className="mt-1 text-2xl font-bold text-primary">¥{Number(wallet?.balance ?? 0).toFixed(2)}</p>
         </div>
-        <div className="card p-5">
+        <div className="card p-6">
           <p className="text-sm text-text-secondary">冻结金额</p>
           <p className="mt-1 text-2xl font-bold text-text">¥{Number(wallet?.frozen ?? 0).toFixed(2)}</p>
         </div>
-        <div className="card p-5">
+        <div className="card p-6">
           <p className="text-sm text-text-secondary">累计充值</p>
           <p className="mt-1 text-2xl font-bold text-text">¥{Number(wallet?.total_recharge ?? 0).toFixed(2)}</p>
         </div>
-        <div className="card p-5">
+        <div className="card p-6">
           <p className="text-sm text-text-secondary">累计消费</p>
           <p className="mt-1 text-2xl font-bold text-text">¥{Number(wallet?.total_consume ?? 0).toFixed(2)}</p>
         </div>
@@ -222,7 +222,7 @@ function CompanyWalletContent() {
       ) : (
         <Card className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-sm">
+            <table className="w-full min-w-[640px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-text-secondary">
                   <th className="px-4 py-3 font-medium">类型</th>

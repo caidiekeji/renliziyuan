@@ -6,10 +6,10 @@
   --color-primary-hover: #0f45cc;
   --color-primary-soft: #e8efff;
   --color-primary-soft-hover: #d6e2ff;
-  /* ── 强调色 10% — 翠绿：生机·成长（色环 ~160°，与主色相隔 ~70°→ 改用 #00b386 ~162°） ── */
-  --color-accent: #00b386;
-  --color-accent-hover: #009970;
-  --color-accent-soft: #e6f9f3;
+  /* ── 强调色 10% — 橙色：活力·行动（色环 ~24°，与主色 230° 相隔 ~174°，满足 ≥120° 撞色要求） ── */
+  --color-accent: #f97316;
+  --color-accent-hover: #ea580c;
+  --color-accent-soft: #fff7ed;
   /* ── 功能色 ── */
   --color-success: #12b76a;
   --color-success-soft: #ecfdf3;
@@ -30,7 +30,7 @@
   --color-scrollbar: #d0d5dd;
   --color-scrollbar-hover: #98a2b3;
   /* ── 字体 ── */
-  --font-sans: var(--font-inter), "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
+  --font-sans: var(--font-inter), var(--font-noto-sans-sc), "PingFang SC", "Microsoft YaHei", system-ui, -apple-system, sans-serif;
   --font-mono: var(--font-jetbrains-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
   /* ── 容器 ── */
   --container-6xl: 70rem;

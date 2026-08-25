@@ -147,19 +147,19 @@ function AdminBoostsContent() {
       <h1 className="mb-5 text-xl font-semibold text-text">竞价置顶</h1>
       {/* 数据概览 */}
       <div className="mb-5 grid grid-cols-2 gap-5 lg:grid-cols-4">
-        <div className="card p-5">
+        <div className="card p-6">
           <p className="text-sm text-text-secondary">总置顶数</p>
           <p className="mt-1 text-[28px] font-bold leading-tight text-text">{stats?.total ?? '-'}</p>
         </div>
-        <div className="card p-5">
+        <div className="card p-6">
           <p className="text-sm text-text-secondary">生效中</p>
           <p className="mt-1 text-[28px] font-bold leading-tight text-text">{stats?.active ?? '-'}</p>
         </div>
-        <div className="card p-5">
+        <div className="card p-6">
           <p className="text-sm text-text-secondary">待审核</p>
           <p className="mt-1 text-[28px] font-bold leading-tight text-text">{stats?.pending ?? '-'}</p>
         </div>
-        <div className="card p-5">
+        <div className="card p-6">
           <p className="text-sm text-text-secondary">累计花费</p>
           <p className="mt-1 text-[28px] font-bold leading-tight text-text">¥{Number(stats?.total_cost ?? 0).toFixed(2)}</p>
         </div>
@@ -201,7 +201,7 @@ function AdminBoostsContent() {
       ) : (
         <Card className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[860px] text-sm">
+            <table className="w-full min-w-[860px] text-left text-sm">
               <thead>
                 <tr className="border-b border-border bg-bg-subtle text-xs text-text-secondary">
                   <th className="px-3 py-3 font-medium">职位</th>

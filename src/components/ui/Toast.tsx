@@ -34,7 +34,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
 
   const color = (t: ToastType) =>
     t === 'success'
-      ? 'border-accent text-accent'
+      ? 'border-success text-success'
       : t === 'error'
         ? 'border-danger text-danger'
         : 'border-primary text-primary';
@@ -46,6 +46,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         {items.map((t) => (
           <div
             key={t.id}
+            role="alert"
+            aria-live="polite"
             className={`pointer-events-auto flex items-start gap-2.5 rounded-xl border bg-white px-4 py-3 text-sm shadow-lg ${
               t.closing ? 'opacity-0 -translate-y-2' : 'opacity-100 translate-y-0'
             } ${color(t.type)} transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]`}

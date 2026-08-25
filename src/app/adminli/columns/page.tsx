@@ -175,7 +175,7 @@ function ColumnsContent() {
 
       <div className="space-y-4">
         {/* Logo */}
-        <div className="card p-5">
+        <div className="card p-6">
           <p className="mb-1 text-sm font-semibold text-text">网站 Logo</p>
           <p className="mb-3 text-xs text-text-secondary">用于前台页头与后台侧栏品牌标识，未设置时自动回退为站点名称首字。</p>
           <div className="flex flex-wrap items-center gap-4">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PublicHeader, PublicFooter } from '@/components/layout/PublicLayout';
@@ -10,8 +10,17 @@ import { api } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { useAuth } from '@/lib/auth-context';
 import { useCountdown } from '@/lib/use-countdown';
+import { PageLoading } from '@/components/ui/Spinner';
 
 export default function RegisterPage() {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <RegisterContent />
+    </Suspense>
+  );
+}
+
+function RegisterContent() {
   const router = useRouter();
   const { toast } = useToast();
   const { refresh, setCompanyId } = useAuth();
@@ -74,7 +83,7 @@ export default function RegisterPage() {
       <PublicHeader />
       <div className="mx-auto flex max-w-md flex-col px-4 py-10">
         <div className="card p-6 sm:p-8">
-          <h1 className="text-xl font-bold text-text">注册账号</h1>
+          <h1 className="text-xl font-semibold text-text">注册账号</h1>
           <p className="mt-1 text-sm text-text-secondary">选择你的身份，开启招聘/求职之旅</p>
 
           <div className="mt-5 grid grid-cols-2 gap-2">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { PublicHeader, PublicFooter } from '@/components/layout/PublicLayout';
@@ -9,8 +9,17 @@ import { Button } from '@/components/ui/Button';
 import { api } from '@/lib/api';
 import { useToast } from '@/components/ui/Toast';
 import { useCountdown } from '@/lib/use-countdown';
+import { PageLoading } from '@/components/ui/Spinner';
 
 export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={<PageLoading />}>
+      <ResetPasswordContent />
+    </Suspense>
+  );
+}
+
+function ResetPasswordContent() {
   const router = useRouter();
   const { toast } = useToast();
   const [phone, setPhone] = useState('');
@@ -49,7 +58,7 @@ export default function ResetPasswordPage() {
       <PublicHeader />
       <div className="mx-auto flex max-w-md flex-col px-4 py-12">
         <div className="card p-6 sm:p-8">
-          <h1 className="text-xl font-bold text-text">找回密码</h1>
+          <h1 className="text-xl font-semibold text-text">找回密码</h1>
           <p className="mt-1 text-sm text-text-secondary">通过手机短信验证码重置登录密码，重置后其他设备将退出登录</p>
 
           <div className="mt-6 space-y-4">

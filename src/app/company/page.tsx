@@ -92,7 +92,7 @@ export default function CompanyHomePage() {
           )}
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-lg font-bold text-text">{current.company.name}</h1>
+              <h1 className="text-xl font-semibold text-text">{current.company.name}</h1>
               <Badge tone={current.company.verify_status === 'VERIFIED' ? 'success' : 'default'}>
                 {COMPANY_VERIFY_LABEL[current.company.verify_status] || current.company.verify_status}
               </Badge>
@@ -167,7 +167,7 @@ const ENTRY_PATHS: Record<string, string> = {
 
 function EntryIcon({ name }: { name: string }) {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-text">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text">
       <path d={ENTRY_PATHS[name] || ENTRY_PATHS.job} />
     </svg>
   );

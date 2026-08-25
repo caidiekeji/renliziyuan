@@ -107,7 +107,7 @@ function CitySwitcherInner({ current, locating }: { current: string; locating?: 
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               placeholder="搜索城市…"
-              className="h-9 w-full rounded-lg border border-border bg-white px-3 text-sm focus:border-text-secondary"
+              className="h-9 w-full rounded-lg border border-border bg-white px-3 text-sm transition-colors duration-200 hover:border-text-secondary/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
             <div className="mt-2">
               <button
@@ -196,7 +196,7 @@ function PublicHeaderInner() {
               <Link
                 key={n.href}
                 href={n.href + qs({ city: city !== '全国' ? city : undefined })}
-                className={`rounded-lg px-3 py-1.5 text-sm transition-colors duration-150 ${pathname.startsWith(n.href) ? 'bg-primary-soft font-medium text-text' : 'text-text-secondary hover:bg-bg-subtle hover:text-text'}`}
+                className={`rounded-lg px-3 py-1.5 text-sm transition-colors duration-200 ${pathname.startsWith(n.href) ? 'bg-primary-soft font-medium text-text' : 'text-text-secondary hover:bg-bg-subtle hover:text-text'}`}
               >
                 {n.label}
               </Link>
@@ -256,7 +256,7 @@ function PublicHeaderInner() {
           <Link
             key={n.href}
             href={n.href + qs({ city: city !== '全国' ? city : undefined })}
-            className={`shrink-0 rounded-lg px-3 py-1 text-sm transition-colors duration-150 ${pathname.startsWith(n.href) ? 'bg-primary-soft font-medium text-text' : 'text-text-secondary'}`}
+            className={`shrink-0 rounded-lg px-3 py-1 text-sm transition-colors duration-200 ${pathname.startsWith(n.href) ? 'bg-primary-soft font-medium text-text' : 'text-text-secondary'}`}
           >
             {n.label}
           </Link>
@@ -266,10 +266,64 @@ function PublicHeaderInner() {
   );
 }
 
+/** 移动端固定底部 Tab 栏：职位/小时工/消息/我的（与 CandidateShell 一致） */
+export function PublicBottomBar() {
+  const pathname = usePathname();
+  const { user } = useAuth();
+
+  const tabs = [
+    { href: '/jobs', label: '职位', icon: 'M21 13.3V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v7.3M21 13.3a2 2 0 0 1-2 1.7h-3l-2 3h-4l-2-3H5a2 2 0 0 1-2-1.7M21 13.3V9M3 13.3V9' },
+    { href: '/hourly-jobs', label: '小时工', icon: 'M12 8v4l3 2m6-2a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z' },
+    { href: '/candidate/messages', label: '消息', icon: 'M21 12a8 8 0 0 1-8 8H4l2-3a8 8 0 1 1 15-5Z' },
+    { href: '/candidate', label: '我的', icon: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm-7 8a7 7 0 0 1 14 0' },
+  ];
+
+  const isActive = (href: string) => {
+    if (href === '/candidate') {
+      // 最长前缀匹配，避免 /candidate/messages 同时激活「我的」
+      const hasLonger = tabs.some((t) => t.href !== href && t.href.length > href.length && pathname.startsWith(t.href));
+      return pathname.startsWith(href) && !hasLonger;
+    }
+    return pathname.startsWith(href);
+  };
+
+  return (
+    <nav
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-border bg-white lg:hidden"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+    >
+      <div className="flex h-14">
+        {tabs.map((t) => (
+          <Link
+            key={t.href}
+            href={t.href}
+            prefetch={false}
+            className={`flex flex-1 flex-col items-center justify-center gap-0.5 text-xs ${
+              isActive(t.href) ? 'font-semibold text-primary' : 'text-text-secondary'
+            }`}
+          >
+            <span className="relative">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d={t.icon} />
+              </svg>
+              {t.href === '/candidate/messages' && user && (user.unread || 0) > 0 && (
+                <span className="absolute -right-2.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-danger px-1 text-[10px] font-semibold leading-none text-white">
+                  {(user.unread || 0) > 99 ? '99+' : user.unread}
+                </span>
+              )}
+            </span>
+            <span>{t.label}</span>
+          </Link>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 export function PublicFooter() {
   const { siteName, nav } = useSiteConfig();
   return (
-    <footer className="mt-12 border-t border-border bg-bg-subtle">
+    <footer className="mt-12 border-t border-border bg-bg-subtle pb-16 lg:pb-0">
       <div className="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:grid-cols-3">
         <div>
           <p className="mb-2 text-sm font-semibold text-text">{siteName}</p>
@@ -295,6 +349,7 @@ export function PublicFooter() {
       <div className="border-t border-border py-4 text-center text-xs text-text-secondary">
         © {new Date().getFullYear()} {siteName} · 招聘求职服务平台
       </div>
+      <PublicBottomBar />
     </footer>
   );
 }

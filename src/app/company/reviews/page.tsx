@@ -104,7 +104,7 @@ function ReviewsContent() {
       ) : (
         <div className="space-y-3">
           {data.items.map((r) => (
-            <div key={r.id} className="card p-5">
+            <div key={r.id} className="card p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-xs font-semibold text-text">
