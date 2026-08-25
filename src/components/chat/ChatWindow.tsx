@@ -317,7 +317,7 @@ export function ChatWindow({
               }}
               placeholder="输入消息…"
               rows={1}
-              className="max-h-28 flex-1 resize-none rounded-lg border border-border bg-bg-subtle px-3 py-2.5 text-sm text-text placeholder:text-text-secondary/50 transition-colors duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="max-h-28 flex-1 resize-none rounded-lg border border-border bg-bg-subtle px-3 py-2.5 text-sm text-text placeholder:text-text-secondary/50 transition-colors duration-200"
             />
             <Button onClick={send} disabled={!draft.trim()}>
               发送

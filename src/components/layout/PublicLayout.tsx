@@ -107,7 +107,7 @@ function CitySwitcherInner({ current, locating }: { current: string; locating?: 
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               placeholder="搜索城市…"
-              className="h-9 w-full rounded-lg border border-border bg-white px-3 text-sm transition-colors duration-200 hover:border-text-secondary/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="h-9 w-full rounded-lg border border-border bg-white px-3 text-sm transition-colors duration-200 hover:border-text-secondary/40"
             />
             <div className="mt-2">
               <button

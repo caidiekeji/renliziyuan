@@ -13,7 +13,7 @@ export function Select({ label, error, options, children, className, ...rest }: 
       {label && <label className="mb-1.5 block text-sm font-medium text-text">{label}</label>}
       <select
         className={`w-full rounded-lg border bg-white px-3 text-sm text-text h-11 transition-colors duration-200 ${
-          error ? 'border-danger focus:ring-2 focus:ring-danger/20' : 'border-border hover:border-text-secondary/40 focus:border-primary focus:ring-2 focus:ring-primary/20'
+          error ? 'border-danger' : 'border-border hover:border-text-secondary/40'
         } ${className || ''}`}
         {...rest}
       >

@@ -106,8 +106,8 @@ input[type="checkbox"], input[type="radio"], input[type="range"],
   -webkit-touch-callout: default;
 }
 
-/* 键盘焦点环：品牌色 ring */
-:where(a, button, input, select, textarea, [role="button"], [tabindex]):focus-visible {
+/* 键盘焦点环：品牌色 ring（输入框不显示） */
+:where(a, button, [role="button"], [tabindex]):focus-visible {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }

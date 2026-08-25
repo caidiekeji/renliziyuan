@@ -46,7 +46,7 @@ export function IndustrySelect({
           setParent(e.target.value);
           onChange(null);
         }}
-        className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-sm text-text transition-colors duration-200 hover:border-text-secondary/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+        className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-sm text-text transition-colors duration-200 hover:border-text-secondary/40"
       >
         <option value="">{placeholder}</option>
         {tree.map((p) => (
@@ -59,7 +59,7 @@ export function IndustrySelect({
         <select
           value={value || ''}
           onChange={(e) => onChange(e.target.value || null)}
-          className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-sm text-text transition-colors duration-200 hover:border-text-secondary/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+          className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-sm text-text transition-colors duration-200 hover:border-text-secondary/40"
         >
           <option value="">全部子行业</option>
           {childOptions.map((c) => (
@@ -73,7 +73,7 @@ export function IndustrySelect({
         <select
           value={value}
           onChange={(e) => onChange(e.target.value || null)}
-          className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-sm text-text transition-colors duration-200 hover:border-text-secondary/40 focus:border-primary focus:ring-2 focus:ring-primary/20"
+          className="h-11 flex-1 rounded-lg border border-border bg-white px-3 text-sm text-text transition-colors duration-200 hover:border-text-secondary/40"
         >
           <option value="">{options.find((o) => o.id === value)?.name}</option>
         </select>

@@ -70,7 +70,7 @@ export default function CompanyCreatePage() {
               <select
                 value={size}
                 onChange={(e) => setSize(e.target.value)}
-                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-text focus:border-primary focus:outline-none"
+                className="w-full rounded-lg border border-border bg-white px-3 py-2 text-sm text-text"
               >
                 <option value="">请选择规模</option>
                 {SIZE_OPTIONS.map((s) => (

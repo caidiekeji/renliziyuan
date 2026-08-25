@@ -31,9 +31,11 @@ COPY --from=builder /app/.next/standalone ./
 # 静态资源
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
-# Prisma 引擎 + schema（运行时 migrate 需要）
+# Prisma 引擎 + schema + CLI（运行时 migrate + seed 需要）
 COPY --from=deps /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
+COPY --from=deps /app/node_modules/.bin/prisma ./node_modules/.bin/prisma
 COPY --from=builder /app/prisma ./prisma
 # tsx（运行自定义 server.ts）+ 源码
 COPY --from=deps /app/node_modules/tsx ./node_modules/tsx
@@ -45,8 +47,10 @@ COPY --from=builder /app/src ./src
 COPY --from=builder /app/docker-entrypoint.sh ./
 RUN chmod +x docker-entrypoint.sh
 
-# uploads 目录 + 权限
+# uploads 目录 + 权限（nextjs 用户可写）
 RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
+# prisma 缓存目录权限（migrate deploy 需要写入）
+RUN chown -R nextjs:nodejs /app/node_modules/.prisma
 
 USER nextjs
 EXPOSE 3000
