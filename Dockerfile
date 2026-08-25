@@ -41,7 +41,11 @@ COPY --from=deps /app/node_modules/esbuild ./node_modules/esbuild
 COPY --from=builder /app/server.ts ./
 COPY --from=builder /app/src ./src
 
-# 上传目录（持久化卷挂载点）
+# 入口脚本 + pg（等待 PG 就绪用）
+COPY --from=builder /app/docker-entrypoint.sh ./
+RUN chmod +x docker-entrypoint.sh
+
+# uploads 目录 + 权限
 RUN mkdir -p /app/uploads && chown nextjs:nodejs /app/uploads
 
 USER nextjs
@@ -49,5 +53,5 @@ EXPOSE 3000
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# 自动迁移 + 启动（docker-compose 可覆盖 command）
-CMD ["sh", "-c", "npx prisma migrate deploy && node_modules/.bin/tsx server.ts"]
+# 自动迁移 + seed（仅首次） + 启动
+CMD ["sh", "./docker-entrypoint.sh"]
